@@ -1,0 +1,15 @@
+# rp4-telemetry
+This application is designed to run on a raspberry pi 4 that is running the [rp4-yocto](https://github.com/HydrogreenPollub/rp4-yocto) linux distribution.
+
+The purpose of the application is to collect data from `can` and `rs485` and send it to a base station via `lora`.
+
+## Build
+Before building please notice that the application is hardware specific, so it most likely will not work for your specific application.
+
+If you decide to build the tool anyways, just run the following commands:
+``` bash
+mkdir build
+cd build
+cmake ..
+make
+```
