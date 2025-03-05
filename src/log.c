@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#define LOG_FILE "/var/log/telemetry.log"
 
 static FILE *log_file = NULL;
 
