@@ -1,6 +1,5 @@
 #include "can.h"
 #include "lora.h"
-#include "log.h"
 #include "watchdog.h"
 
 #include <assert.h>
@@ -12,6 +11,9 @@
 #include <unistd.h>
 
 #define LOG_FILE "/var/log/telemetry.log"
+
+static pthread_t can_thread;
+static pthread_t lora_thread;
 
 /**
  * TODO
@@ -33,13 +35,21 @@ int main(int argc, char **argv) {
     int logfd = open(LOG_FILE, O_WRONLY | O_CREAT, 0666);
     assert(logfd > 0);
 
-    close(stdin);
+    close(STDIN_FILENO);
     open("/dev/null", O_RDONLY);
-    dup2(logfd, stdout);
-    dup2(logfd, stderr);
+    dup2(logfd, STDOUT_FILENO);
+    dup2(logfd, STDERR_FILENO);
 
-    // Split program into multiple threads
+    // TODO handle sigactions by closing all opened peripherals
+
+    // Split program into multiple threads - we pass in IDs growing from 0 in order
+    pthread_create(&can_thread, NULL, can, (void*)0);
+    pthread_create(&lora_thread, NULL, lora, (void*)1);
+
     watchdog();
+
+    pthread_join(can_thread, NULL);
+    pthread_join(lora_thread, NULL);
 
     return EXIT_SUCCESS;
 }

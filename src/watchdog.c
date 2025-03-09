@@ -2,7 +2,11 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 
 #define NUMBER_OF_THREADS 3
 #define WATCHDOG_TIMEOUT 1
@@ -36,11 +40,10 @@ void watchdog(void) {
                 times_since_last_update[i] = time(0);
                 watchdog_threads[i] = false;
             } else if (time(0) - times_since_last_update[i] > WATCHDOG_THREAD_TIMEOUT) {
-                printf("OMG! THE THREAD IS NOT RESPONDING 0_0\n");
+                // TODO Maybe restart the thread instead of crashing entire app 0_0
+                raise(SIGTERM);
             }
         }
         pthread_mutex_unlock(&watchdog_mutex);
-
-        printf("Watchdog watching dogs... or something...\n");
     }
 }

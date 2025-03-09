@@ -1,6 +1,6 @@
 #include "rs485.h"
-#include "log.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,10 +12,7 @@ const int EN_RS485[] = { 4 };
 
 int rs485_connect() {
     struct gpiod_chip *chip = gpiod_chip_open("/dev/gpiochip0");
-    if(!chip) {
-        log_write("RS485: Error %i from gpiod_chip_open: %s\n", errno, strerror(errno));
-        return EXIT_FAILURE;
-    }
+    assert(chip != NULL);
 
     struct gpiod_line_settings *settings = gpiod_line_settings_new();
     gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_OUTPUT);

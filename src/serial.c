@@ -1,29 +1,24 @@
 #include "serial.h"
-#include "log.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <string.h>
 #include <termios.h>
 
 int serial_get_device(char *device_file, int baudrate) {
     // Maybe add flags as an argument to function
-    log_write("SERIAL: Opening device %s with baud rate %d\n", device_file, baudrate);
+    fprintf(stdout, "SERIAL: Opening device %s with baud rate %d\n", device_file, baudrate);
 
     int device = open(device_file, O_RDWR | O_NDELAY | O_NONBLOCK);
-    if (device < 0) {
-        log_write("SERIAL: Error %i from open: %s\n", errno, strerror(errno));
-        return -1;
-    }
+    assert(device > 0); 
     
     struct termios tty;
 
     // Get current config
-    if(tcgetattr(device, &tty) != 0) {
-        log_write("SERIAL: Error %i from tcgetattr: %s\n", errno, strerror(errno));
-        return -1;
-    }
+    tcgetattr(device, &tty);
 
     // Configure serial interface
     tty.c_iflag = IGNPAR | IGNBRK;
@@ -37,12 +32,9 @@ int serial_get_device(char *device_file, int baudrate) {
 
     // Save changes
     tcflush(device, TCIOFLUSH);
-    if(tcsetattr(device, TCSANOW, &tty) != 0) {
-        log_write("SERIAL: Error %i from tcsetattr: %s\n", errno, strerror(errno));
-        return -1;
-    }
+    tcsetattr(device, TCSANOW, &tty);
     
-    log_write("SERIAL: Device descriptor is %d\n", device);
+    fprintf(stdout, "SERIAL: Device descriptor is %d\n", device);
 
     return device;
 }
