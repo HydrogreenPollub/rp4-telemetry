@@ -25,14 +25,15 @@ int main(int argc, char **argv) {
     int nochdir = 0;    // Change to "/"
     int noclose = 1;    // don't redirect stdin, stdout and stderr to /dev/null
 
+    // TODO check if its necessary to become a daemon process.
     // If opening the daemon failed, show error.
-    if(daemon(nochdir, noclose)) {
-	    perror("Starting the daemon failed");
-        return EXIT_FAILURE;
-    }
+    // if(daemon(nochdir, noclose)) {
+	//     perror("Starting the daemon failed");
+    //     return EXIT_FAILURE;
+    // }
 
     // Redirect stdout and stderr to log file and stdin to /dev/null
-    int logfd = open(LOG_FILE, O_WRONLY | O_CREAT, 0666);
+    int logfd = open(LOG_FILE, O_APPEND | O_WRONLY | O_CREAT, 0666);
     assert(logfd > 0);
 
     close(STDIN_FILENO);

@@ -24,7 +24,7 @@ char *read_data() {
 
     char *buffer = malloc(255);
     if (buffer) {
-        snprintf(buffer, 255, "X: %d, Y: %d\r", td.x, td.y);
+        snprintf(buffer, 255, "X: %d, Y: %d\n\r", td.x, td.y);
     }
 
     pthread_mutex_unlock(&td.lock);
