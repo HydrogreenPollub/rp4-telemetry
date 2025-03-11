@@ -1,5 +1,6 @@
 #include <threads/watchdog.h>
 #include <threads/peripherals/can.h>
+#include <utils/data.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -42,6 +43,9 @@ void *can(void *arg) {
         if(nbytes > 0) {
             printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n", frame.can_id, frame.can_dlc);
         }
+
+        update_x(nbytes);
+        update_y(420);
 
         inform_watchdog((int)arg);
 

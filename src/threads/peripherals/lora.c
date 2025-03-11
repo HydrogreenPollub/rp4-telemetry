@@ -1,5 +1,6 @@
 #include <threads/watchdog.h>
 #include <threads/peripherals/lora.h>
+#include <utils/data.h>
 #include <utils/serial.h>
 
 #include <assert.h>
@@ -20,6 +21,10 @@ void *lora(void *arg) {
     assert(lora_port > 0);
 
     while(true) {
+        char *data = read_data(); 
+        write(lora_port, data, strlen(data));
+        free(data);
+
         write(lora_port, "Hello world\r", 12);
 
         inform_watchdog((int)arg);

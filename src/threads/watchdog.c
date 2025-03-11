@@ -8,7 +8,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#define NUMBER_OF_THREADS 3
+#define NUMBER_OF_THREADS 2
 #define WATCHDOG_TIMEOUT 1
 #define WATCHDOG_THREAD_TIMEOUT 2
 
