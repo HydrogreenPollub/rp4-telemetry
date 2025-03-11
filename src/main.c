@@ -40,6 +40,10 @@ int main(int argc, char **argv) {
     open("/dev/null", O_RDONLY);
     dup2(logfd, STDOUT_FILENO);
     dup2(logfd, STDERR_FILENO);
+    
+    // Disable file buffering
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
 
     // TODO handle sigactions by closing all opened peripherals
 

@@ -10,7 +10,7 @@
 
 #define NUMBER_OF_THREADS 2
 #define WATCHDOG_TIMEOUT 1
-#define WATCHDOG_THREAD_TIMEOUT 2
+#define WATCHDOG_THREAD_TIMEOUT 5
 
 bool watchdog_threads[NUMBER_OF_THREADS] = { 0 };
 pthread_mutex_t watchdog_mutex = PTHREAD_MUTEX_INITIALIZER;
