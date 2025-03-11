@@ -1,6 +1,6 @@
-#include "lora.h"
-#include "watchdog.h"
-#include "serial.h"
+#include <threads/watchdog.h>
+#include <threads/peripherals/lora.h>
+#include <utils/serial.h>
 
 #include <assert.h>
 #include <stdbool.h>

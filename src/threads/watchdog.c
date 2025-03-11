@@ -1,4 +1,4 @@
-#include "watchdog.h"
+#include <threads/watchdog.h>
 
 #include <assert.h>
 #include <pthread.h>

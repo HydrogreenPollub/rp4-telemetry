@@ -1,4 +1,4 @@
-#include "rs485.h"
+#include <threads/peripherals/rs485.h>
 
 #include <assert.h>
 #include <stdio.h>

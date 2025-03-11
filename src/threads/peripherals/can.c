@@ -1,5 +1,5 @@
-#include "can.h"
-#include "watchdog.h"
+#include <threads/watchdog.h>
+#include <threads/peripherals/can.h>
 
 #include <assert.h>
 #include <stdlib.h>

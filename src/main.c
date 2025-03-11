@@ -1,6 +1,6 @@
-#include "can.h"
-#include "lora.h"
-#include "watchdog.h"
+#include <threads/watchdog.h>
+#include <threads/peripherals/can.h>
+#include <threads/peripherals/lora.h>
 
 #include <assert.h>
 #include <fcntl.h>

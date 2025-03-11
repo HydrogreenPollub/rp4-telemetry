@@ -1,4 +1,4 @@
-#include "serial.h"
+#include <utils/serial.h>
 
 #include <assert.h>
 #include <errno.h>
