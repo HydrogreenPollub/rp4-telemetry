@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.0)
-project(rp4-telemetry VERSION 1.0.0)
+project(telemetry VERSION 1.0.0)
 
 add_compile_options(-Wall)
 
