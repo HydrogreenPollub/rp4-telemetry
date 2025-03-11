@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -26,6 +27,10 @@ void *can(void *arg) {
 
     strcpy(ifr.ifr_name, "can0");
     ioctl(sock, SIOCGIFINDEX, &ifr);
+    
+    // Set the socket to non-blocking mode
+    int flags = fcntl(sock, F_GETFL, 0);
+    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
@@ -39,8 +44,13 @@ void *can(void *arg) {
 
         // TODO maybe allow for setting filters, to allow choosing a particular device
         int nbytes = read(sock, &frame, sizeof(frame));
-    
-        if(nbytes > 0) {
+        if (nbytes < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                printf("CAN: No data available, retrying...\n");
+            } else {
+                perror("CAN: read error");
+            }
+        } else {
             printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n", frame.can_id, frame.can_dlc);
         }
 
