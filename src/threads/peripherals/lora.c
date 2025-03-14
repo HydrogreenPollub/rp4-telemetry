@@ -25,8 +25,6 @@ void *lora(void *arg) {
         write(lora_port, data, strlen(data));
         free(data);
 
-        write(lora_port, "Hello world\n\r", 13);
-
         inform_watchdog((int)arg);
 
         sleep(1);
