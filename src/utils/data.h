@@ -1,16 +1,15 @@
 #ifndef DATA_H
 #define DATA_H
 
-#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
 
-struct TelemetryData {
-    int x;
-    int y;
-    pthread_mutex_t lock;    
+struct TSData {
+    int8_t x;
+    int8_t y;
 };
 
-void update_x(int x);
-void update_y(int y);
-char *read_data();
+void set_x(int8_t x);
+void *read_data(void);
 
 #endif

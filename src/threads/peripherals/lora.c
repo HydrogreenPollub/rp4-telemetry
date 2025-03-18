@@ -11,6 +11,7 @@
 
 #include <fcntl.h>
 #include <errno.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <termios.h>
 
@@ -21,9 +22,8 @@ void *lora(void *arg) {
     assert(lora_port > 0);
 
     while(true) {
-        char *data = read_data(); 
-        write(lora_port, data, strlen(data));
-        free(data);
+        void *data = read_data();
+        write(lora_port, data, sizeof(struct TSData));
 
         inform_watchdog((int)arg);
 

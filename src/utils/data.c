@@ -1,32 +1,19 @@
 #include <utils/data.h>
 
-struct TelemetryData td = {
-    .x = -1,
-    .y = -1,
-    .lock = PTHREAD_MUTEX_INITIALIZER
- };
+#include <stdbool.h>
+#include <stdint.h>
+#include <pthread.h>
 
-void update_x(int x) {
-    pthread_mutex_lock(&td.lock);
+static pthread_mutex_t data_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+struct TSData td = { 0 };
+
+void set_x(int8_t x) {
+    pthread_mutex_lock(&data_mutex);
     td.x = x;
-    pthread_mutex_unlock(&td.lock);
+    pthread_mutex_unlock(&data_mutex);
 }
 
-void update_y(int y) {
-    pthread_mutex_lock(&td.lock);
-    td.y = y;
-    pthread_mutex_unlock(&td.lock);
-}
-
-// TODO add flatbuffer support and maybe change logic
-char *read_data() {
-    pthread_mutex_lock(&td.lock);
-
-    char *buffer = malloc(255);
-    if (buffer) {
-        snprintf(buffer, 255, "X: %d, Y: %d\n\r", td.x, td.y);
-    }
-
-    pthread_mutex_unlock(&td.lock);
-    return buffer;
+void *read_data(void) {
+    return (void *)&td;
 }

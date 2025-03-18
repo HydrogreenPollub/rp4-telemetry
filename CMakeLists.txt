@@ -9,7 +9,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/flatbuffers/
     ${CMAKE_SOURCE_DIR}/src/threads
     ${CMAKE_SOURCE_DIR}/src/utils
 )

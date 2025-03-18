@@ -1,6 +1,7 @@
 #include <threads/watchdog.h>
 #include <threads/peripherals/can.h>
 #include <threads/peripherals/lora.h>
+#include <utils/data.h>
 
 #include <assert.h>
 #include <fcntl.h>
