@@ -23,7 +23,7 @@ void *lora(void *arg) {
 
     while(true) {
         void *data = read_data();
-        write(lora_port, data, sizeof(struct TSData));
+        write(lora_port, data, 1024);
 
         inform_watchdog((int)arg);
 
