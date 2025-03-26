@@ -54,7 +54,7 @@ void *can(void *arg) {
             printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n", frame.can_id, frame.can_dlc);
         }
         
-        inform_watchdog((int)arg);
+        inform_watchdog(*(uint8_t *)arg);
 
         sleep(1);
     }

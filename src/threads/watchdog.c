@@ -1,13 +1,5 @@
 #include <threads/watchdog.h>
 
-#include <assert.h>
-#include <pthread.h>
-#include <signal.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-
 #define NUMBER_OF_THREADS 2
 #define WATCHDOG_TIMEOUT 1
 #define WATCHDOG_THREAD_TIMEOUT 5
@@ -15,7 +7,7 @@
 bool watchdog_threads[NUMBER_OF_THREADS] = { 0 };
 pthread_mutex_t watchdog_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void inform_watchdog(int idx) {
+void inform_watchdog(uint8_t idx) {
     assert(idx < NUMBER_OF_THREADS);
 
     pthread_mutex_lock(&watchdog_mutex);

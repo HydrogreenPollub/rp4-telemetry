@@ -22,10 +22,10 @@ void *lora(void *arg) {
     assert(lora_port > 0);
 
     while(true) {
-        void *data = read_data();
+        const void *data = read_data();
         write(lora_port, data, 1024);
 
-        inform_watchdog((int)arg);
+        inform_watchdog(*(uint8_t *)arg);
 
         sleep(1);
     }
