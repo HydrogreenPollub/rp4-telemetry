@@ -7,8 +7,15 @@ ssize_t buffer_len = 0;
 uint8_t buf[TSDATA_BUFFER_SIZE];
 static pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void set_x(int8_t x) {
+void set_fanRpm(int32_t fanRpm) {
     pthread_mutex_lock(&data_mutex);
+    telemetry_data.fanRpm = fanRpm;
+    pthread_mutex_unlock(&data_mutex);
+}
+
+void set_motorPwm(int32_t motorPwm) {
+    pthread_mutex_lock(&data_mutex);
+    telemetry_data.motorPwm = motorPwm;
     pthread_mutex_unlock(&data_mutex);
 }
 
