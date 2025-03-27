@@ -11,6 +11,11 @@
 
 #define TSDATA_BUFFER_SIZE 1024
 
+// Provides setter prototypes for all of the fields
+#define XSET_TSDATA(FIELD, TYPE) void set_##FIELD(TYPE value);
+#include <utils/ts_data.def>
+#undef XSET_TSDATA
+
 // void set_isEmergency(bool state);
 // void set_isEmergencyButtonPressed(bool state);
 // void set_isEmergencySwitchToggled(bool state);

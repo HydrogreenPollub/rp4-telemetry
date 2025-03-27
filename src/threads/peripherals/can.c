@@ -52,7 +52,7 @@ void *can(void *arg) {
             }
         } else {
             printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n", frame.can_id, frame.can_dlc);
-            set_fanRpm(frame.data);
+            set_fanRpm(*(int32_t *)frame.data);
         }
         
         inform_watchdog(*(uint8_t *)arg);
