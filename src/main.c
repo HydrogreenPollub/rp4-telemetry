@@ -1,6 +1,7 @@
 #include <threads/watchdog.h>
 #include <threads/peripherals/can.h>
 #include <threads/peripherals/lora.h>
+#include <threads/peripherals/gps.h>
 #include <utils/data.h>
 
 #include <assert.h>
@@ -14,7 +15,14 @@
 #define LOG_FILE "/var/log/telemetry.log"
 
 static pthread_t can_thread;
+static pthread_t gps_thread;
 static pthread_t lora_thread;
+
+enum thread_ids {
+    CAN_THREAD_ID,
+    GPS_THREAD_ID,
+    LORA_THREAD_ID,
+};
 
 /**
  * TODO
@@ -37,12 +45,14 @@ int main(int argc, char **argv) {
     // TODO handle sigactions by closing all opened peripherals
 
     // Split program into multiple threads - we pass in IDs growing from 0 in order
-    pthread_create(&can_thread, NULL, can, (void*)0);
-    pthread_create(&lora_thread, NULL, lora, (void*)1);
+    pthread_create(&can_thread, NULL, can, (void*)CAN_THREAD_ID);
+    pthread_create(&gps_thread, NULL, gps, (void*)GPS_THREAD_ID);
+    pthread_create(&lora_thread, NULL, lora, (void*)LORA_THREAD_ID);
 
     watchdog();
 
     pthread_join(can_thread, NULL);
+    pthread_join(gps_thread, NULL);
     pthread_join(lora_thread, NULL);
 
     return EXIT_SUCCESS;

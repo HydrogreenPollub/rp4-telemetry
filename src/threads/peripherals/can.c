@@ -1,22 +1,4 @@
-#include <threads/watchdog.h>
 #include <threads/peripherals/can.h>
-#include <utils/data.h>
-
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
-
-#include <errno.h>
-#include <fcntl.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-
-#include <linux/can.h>
-#include <linux/can/raw.h>
 
 void *can(void *arg) {
     int sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
