@@ -18,6 +18,7 @@ static pthread_t can_thread;
 static pthread_t gps_thread;
 static pthread_t lora_thread;
 
+// Remember to increase thread amount in watchdog.c
 enum thread_ids {
     CAN_THREAD_ID,
     GPS_THREAD_ID,
@@ -45,9 +46,9 @@ int main(int argc, char **argv) {
     // TODO handle sigactions by closing all opened peripherals
 
     // Split program into multiple threads - we pass in IDs growing from 0 in order
-    //pthread_create(&can_thread, NULL, can, (void*)CAN_THREAD_ID);
-    //pthread_create(&gps_thread, NULL, gps, (void*)GPS_THREAD_ID);
-    //pthread_create(&lora_thread, NULL, lora, (void*)LORA_THREAD_ID);
+    pthread_create(&can_thread, NULL, can, (void*)CAN_THREAD_ID);
+    pthread_create(&gps_thread, NULL, gps, (void*)GPS_THREAD_ID);
+    pthread_create(&lora_thread, NULL, lora, (void*)LORA_THREAD_ID);
 
     watchdog();
 
