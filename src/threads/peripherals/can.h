@@ -1,7 +1,6 @@
 #ifndef CAN_H
 #define CAN_H
 
-#include <threads/watchdog.h>
 #include <utils/data.h>
 
 #include <assert.h>

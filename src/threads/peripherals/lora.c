@@ -10,8 +10,6 @@ void *lora(void *arg) {
         const void *data = read_data();
         write(lora_port, data, 1024);
 
-        inform_watchdog(*(uint8_t *)arg);
-
         sleep(1);
     }
 }

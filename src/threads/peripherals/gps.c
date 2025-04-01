@@ -27,8 +27,7 @@ void *gps(void *arg) {
                 break;
         }
 
-        inform_watchdog(*(uint8_t *)arg);
-
         // TODO should this thread sleep?
+        sleep(1);
     }
 }

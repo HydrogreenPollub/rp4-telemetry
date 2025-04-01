@@ -43,8 +43,6 @@ void *can(void *arg) {
             set_fanRpm(*(int32_t *)frame.data);
         }
         
-        inform_watchdog(*(uint8_t *)arg);
-
         sleep(1);
     }
 }
