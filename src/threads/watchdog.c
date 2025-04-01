@@ -10,6 +10,8 @@ pthread_mutex_t watchdog_mutex = PTHREAD_MUTEX_INITIALIZER;
 void inform_watchdog(uint8_t idx) {
     assert(idx < NUMBER_OF_THREADS);
 
+    fprintf(stdout, "WATCHDOG: Received update from %d\n", idx);
+
     pthread_mutex_lock(&watchdog_mutex);
     watchdog_threads[idx] = true;
     pthread_mutex_unlock(&watchdog_mutex);

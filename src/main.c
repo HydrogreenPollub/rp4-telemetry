@@ -45,8 +45,8 @@ int main(int argc, char **argv) {
     // TODO handle sigactions by closing all opened peripherals
 
     // Split program into multiple threads - we pass in IDs growing from 0 in order
-    pthread_create(&can_thread, NULL, can, (void*)CAN_THREAD_ID);
-    pthread_create(&gps_thread, NULL, gps, (void*)GPS_THREAD_ID);
+    //pthread_create(&can_thread, NULL, can, (void*)CAN_THREAD_ID);
+    //pthread_create(&gps_thread, NULL, gps, (void*)GPS_THREAD_ID);
     pthread_create(&lora_thread, NULL, lora, (void*)LORA_THREAD_ID);
 
     watchdog();
