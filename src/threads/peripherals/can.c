@@ -8,16 +8,22 @@ void *can(void *arg) {
     struct ifreq ifr;
 
     strcpy(ifr.ifr_name, "can0");
-    ioctl(sock, SIOCGIFINDEX, &ifr);
-    
+    if(ioctl(sock, SIOCGIFINDEX, &ifr) < 0) {
+        perror("CAN: ioctl call failed\n");
+    }
+
     // Set the socket to non-blocking mode
     int flags = fcntl(sock, F_GETFL, 0);
-    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+    if(fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0) {
+        perror("CAN: fcntl call failed\n");
+    }
 
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    bind(sock, (struct sockaddr *)&addr, sizeof(addr));
+    if(bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("CAN: binding socket failed\n");
+    }
 
     printf("CAN: Started successfully\n");
 
