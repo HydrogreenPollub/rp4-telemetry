@@ -27,7 +27,6 @@ void *gps(void *arg) {
                 break;
         }
 
-        // TODO should this thread sleep?
-        sleep(1);
+        usleep(200000); // 200ms
     }
 }
