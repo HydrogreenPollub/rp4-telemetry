@@ -4,9 +4,12 @@
 
 void *gps(void *arg) {
     FILE *gps = fopen(GPS_DEVICE, "r");
-    //assert(gps != NULL); // TODO add a way to decide which peripherals are enabled
+    if (gps == NULL) {
+        perror("GPS: Couldn't open device file...\n");
+        return NULL;
+    }
     
-    char line[MINMEA_MAX_SENTENCE_LENGTH];
+    char line[MINMEA_MAX_SENTENCE_LENGTH] = { 0 };
 
     while(true) {
         fgets(line, sizeof(line), gps);
