@@ -15,8 +15,9 @@ void *lora(void *arg) {
         buffer[TSDATA_BUFFER_SIZE] = '\n';
         buffer[TSDATA_BUFFER_SIZE + 1] = '\r';
         
+        fprintf(stdout, "LORA: Sending buffer - %s\n", (const char*)data);
         write(lora_port, buffer, TSDATA_BUFFER_SIZE + 2);
 
-        sleep(1);
+        sleep(5);
     }
 }

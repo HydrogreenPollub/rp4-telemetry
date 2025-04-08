@@ -9,7 +9,7 @@
 #include <utils/proto/capnp_c.h>
 #include <utils/proto/ts_data.capnp.h>
 
-#define TSDATA_BUFFER_SIZE 4096
+#define TSDATA_BUFFER_SIZE 128
 
 // Provides setter prototypes for all of the fields
 #define XSET_TSDATA(FIELD, TYPE) void set_##FIELD(TYPE value);
