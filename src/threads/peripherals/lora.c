@@ -14,8 +14,12 @@ void *lora(void *arg) {
         memcpy(buffer, data, TSDATA_BUFFER_SIZE);
         buffer[TSDATA_BUFFER_SIZE] = '\n';
         buffer[TSDATA_BUFFER_SIZE + 1] = '\r';
+
+        // data is not null terminated
+        fprintf(stdout, "LORA: Sending buffer - ");
+        fwrite(data, 1, TSDATA_BUFFER_SIZE, stdout);
+        fprintf(stdout, "\n");
         
-        fprintf(stdout, "LORA: Sending buffer - %s\n", (const char*)data);
         write(lora_port, buffer, TSDATA_BUFFER_SIZE + 2);
 
         sleep(5);
