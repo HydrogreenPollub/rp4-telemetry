@@ -4,7 +4,7 @@ struct TSData telemetry_data = { 0 };
 static pthread_mutex_t data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 ssize_t buffer_len = 0;
-uint8_t buf[TSDATA_BUFFER_SIZE];
+uint8_t buf[TSDATA_BUFFER_SIZE] = { 0 };
 static pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Define setters for struct using XMacro

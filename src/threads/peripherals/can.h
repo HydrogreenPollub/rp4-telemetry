@@ -2,6 +2,7 @@
 #define CAN_H
 
 #include <utils/data.h>
+#include <utils/can_ids/can_ids.h>
 
 #include <assert.h>
 #include <stdlib.h>

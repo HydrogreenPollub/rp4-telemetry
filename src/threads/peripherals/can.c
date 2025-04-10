@@ -29,7 +29,21 @@ void *can(void *arg) {
             perror("CAN: read error");
         } else {
             printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n", frame.can_id, frame.can_dlc);
-            set_fanRpm(*(int32_t *)frame.data);
+
+            // TODO add more IDs once tested
+            switch(frame.can_id) {
+                case CAN_ID_IS_EMERGENCY:
+                    set_isEmergency(*(bool *)frame.data);
+                    break;
+
+                case CAN_ID_FC_CURRENT:
+                    set_fcCurrent(*(int32_t *)frame.data);             
+                    break;
+
+                default:
+                    printf("CAN: can_id %d is currently not supported\n", frame.can_id);
+                    break;
+            }
         }
         
         usleep(500);

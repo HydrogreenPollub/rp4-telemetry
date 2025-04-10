@@ -1,0 +1,3 @@
+[submodule "src/utils/can_ids"]
+	path = src/utils/can_ids
+	url = https://github.com/HydrogreenPollub/can_ids.git
