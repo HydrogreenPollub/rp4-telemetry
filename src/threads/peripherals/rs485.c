@@ -1,16 +1,9 @@
 #include <threads/peripherals/rs485.h>
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <gpiod.h>
-
 const int EN_RS485[] = { 4 };
 
-int rs485_connect() {
+int rs485_connect()
+{
     // struct gpiod_chip *chip = gpiod_chip_open("/dev/gpiochip0");
     // assert(chip != NULL);
 
@@ -36,7 +29,8 @@ int rs485_connect() {
     return EXIT_SUCCESS;
 }
 
-int rs485_disconnect() {
+int rs485_disconnect()
+{
     // TODO close serial device (right now we're not even opening it lol)
     return EXIT_SUCCESS;
 }

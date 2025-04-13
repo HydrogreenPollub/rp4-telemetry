@@ -1,20 +1,13 @@
 #include <utils/serial.h>
 
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <termios.h>
-
-int serial_get_device(char *device_file, int baudrate) {
+int serial_get_device(char* device_file, int baudrate)
+{
     // Maybe add flags as an argument to function
     fprintf(stdout, "SERIAL: Opening device %s with baudrate %d\n", device_file, baudrate);
 
     int device = open(device_file, O_RDWR | O_NDELAY | O_NONBLOCK);
-    assert(device > 0); 
-    
+    assert(device > 0);
+
     struct termios tty;
 
     // Get current config
@@ -33,7 +26,7 @@ int serial_get_device(char *device_file, int baudrate) {
     // Save changes
     tcflush(device, TCIOFLUSH);
     tcsetattr(device, TCSANOW, &tty);
-    
+
     fprintf(stdout, "SERIAL: Device descriptor is %d\n", device);
 
     return device;

@@ -1,10 +1,10 @@
 #ifndef DATA_H
 #define DATA_H
 
+#include <pthread.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <pthread.h>
 
 #include <utils/proto/capnp_c.h>
 #include <utils/proto/ts_data.capnp.h>
@@ -16,6 +16,6 @@
 #include <utils/ts_data.def>
 #undef XSET_TSDATA
 
-const uint8_t *read_data(void);
+const uint8_t* read_data(void);
 
 #endif

@@ -1,6 +1,6 @@
 #include <threads/peripherals/can.h>
-#include <threads/peripherals/lora.h>
 #include <threads/peripherals/gps.h>
+#include <threads/peripherals/lora.h>
 #include <utils/data.h>
 
 #include <assert.h>
@@ -20,12 +20,14 @@ static pthread_t can_thread;
 static pthread_t gps_thread;
 static pthread_t lora_thread;
 
-void sigaction_handler(int signum) {
+void sigaction_handler(int signum)
+{
     fprintf(stdout, "MAIN: Sigaction received - Closing program...\n");
     running = false; // TODO do we need a more advanced handler?
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
     // Redirect stdout and stderr to log file and stdin to /dev/null
     int logfd = open(LOG_FILE, O_APPEND | O_WRONLY | O_CREAT, 0666);
     assert(logfd > 0);
@@ -46,7 +48,7 @@ int main(int argc, char **argv) {
     sig.sa_handler = sigaction_handler;
     sigaction(SIGINT, &sig, NULL);
 
-    while(running) {
+    while (running) {
         sleep(1);
     }
 

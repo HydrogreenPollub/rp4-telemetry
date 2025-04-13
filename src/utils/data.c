@@ -8,17 +8,19 @@ uint8_t buf[TSDATA_BUFFER_SIZE] = { 0 };
 static pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Define setters for struct using XMacro
-#define XSET_TSDATA(FIELD, TYPE) \
-void set_##FIELD(TYPE value) { \
-    pthread_mutex_lock(&data_mutex); \
-    telemetry_data.FIELD = value; \
-    pthread_mutex_unlock(&data_mutex); \
-}
+#define XSET_TSDATA(FIELD, TYPE)           \
+    void set_##FIELD(TYPE value)           \
+    {                                      \
+        pthread_mutex_lock(&data_mutex);   \
+        telemetry_data.FIELD = value;      \
+        pthread_mutex_unlock(&data_mutex); \
+    }
 #include <utils/ts_data.def>
 #undef XSET_TSDATA
 
 // Return read only pointer
-const uint8_t *read_data(void) {
+const uint8_t* read_data(void)
+{
     pthread_mutex_lock(&buffer_mutex);
 
     // Create capnproto object
@@ -27,7 +29,7 @@ const uint8_t *read_data(void) {
 
     // Create pointer to root structure
     capn_ptr cr = capn_root(&c);
-    struct capn_segment *cs = cr.seg;
+    struct capn_segment* cs = cr.seg;
 
     // Create pointer to data
     TSData_ptr ptr = new_TSData(cs);

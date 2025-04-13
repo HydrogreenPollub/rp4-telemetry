@@ -1,13 +1,13 @@
 #ifndef CAN_H
 #define CAN_H
 
-#include <utils/data.h>
 #include <utils/can_ids/can_ids.h>
+#include <utils/data.h>
 
 #include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -20,6 +20,6 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-void *can(void *arg);
+void* can(void* arg);
 
 #endif

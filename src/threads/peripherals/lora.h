@@ -6,16 +6,16 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include <fcntl.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <termios.h>
+#include <unistd.h>
 
-void *lora(void *arg);
+void* lora(void* arg);
 
 #endif
