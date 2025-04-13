@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <gpiod.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 int rs485_connect();
