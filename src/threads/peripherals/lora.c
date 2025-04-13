@@ -16,11 +16,11 @@ void* lora(void* arg)
         buffer[TSDATA_BUFFER_SIZE] = '\n';
         buffer[TSDATA_BUFFER_SIZE + 1] = '\r';
 
-        fprintf(stdout, "LORA: Sending buffer - ");
+        printf("LORA: Sending buffer - ");
         for (int i = 0; i < TSDATA_BUFFER_SIZE; ++i) {
-            fprintf(stdout, "%02X ", ((unsigned char*)data)[i]);
+            printf("%02X ", ((unsigned char*)data)[i]);
         }
-        fprintf(stdout, "\n");
+        printf("\n");
 
         write(lora_port, buffer, TSDATA_BUFFER_SIZE + 2);
 

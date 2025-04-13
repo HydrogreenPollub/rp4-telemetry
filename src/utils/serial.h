@@ -3,10 +3,10 @@
 
 #include <assert.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <termios.h>
+#include <unistd.h>
 
-int serial_get_device(char *device_file, int baudrate);
+int serial_get_device(char* device_file, int baudrate);
 
 #endif

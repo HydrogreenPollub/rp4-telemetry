@@ -18,7 +18,7 @@ void* gps(void* arg)
         // TODO do we need to parse other types of sentences???
         enum minmea_sentence_id sentence_id = minmea_sentence_id(line, false);
         switch (sentence_id) {
-        case MINMEA_SENTENCE_RMC:
+        case MINMEA_SENTENCE_RMC: {
             struct minmea_sentence_rmc frame;
             if (minmea_parse_rmc(&frame, line)) {
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
@@ -26,8 +26,9 @@ void* gps(void* arg)
                 set_gpsSpeed(minmea_tofloat(&frame.speed));
             }
             break;
+        }
         default:
-            fprintf(stdout, "GPS: Unhandled NMEA sentence - ID %d\n", sentence_id);
+            printf("GPS: Unhandled NMEA sentence - ID %d\n", sentence_id);
             break;
         }
 

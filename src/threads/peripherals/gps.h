@@ -6,8 +6,6 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 void* gps(void* arg);
 

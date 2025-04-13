@@ -3,7 +3,7 @@
 int serial_get_device(char* device_file, int baudrate)
 {
     // Maybe add flags as an argument to function
-    fprintf(stdout, "SERIAL: Opening device %s with baudrate %d\n", device_file, baudrate);
+    printf("SERIAL: Opening device %s with baudrate %d\n", device_file, baudrate);
 
     int device = open(device_file, O_RDWR | O_NDELAY | O_NONBLOCK);
     assert(device > 0);
@@ -27,7 +27,7 @@ int serial_get_device(char* device_file, int baudrate)
     tcflush(device, TCIOFLUSH);
     tcsetattr(device, TCSANOW, &tty);
 
-    fprintf(stdout, "SERIAL: Device descriptor is %d\n", device);
+    printf("SERIAL: Device descriptor is %d\n", device);
 
     return device;
 }
