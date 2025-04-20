@@ -1,6 +1,7 @@
 #include <threads/peripherals/can.h>
 #include <threads/peripherals/gps.h>
 #include <threads/peripherals/lora.h>
+#include <threads/peripherals/rs485.h>
 #include <utils/data.h>
 
 #include <assert.h>
@@ -17,6 +18,7 @@ static bool running = true;
 
 static pthread_t can_thread;
 static pthread_t gps_thread;
+static pthread_t rs485_thread;
 static pthread_t lora_thread;
 
 void sigaction_handler(int signum)
@@ -41,6 +43,7 @@ int main(int argc, char** argv)
     // Split program into multiple threads
     pthread_create(&can_thread, NULL, can, NULL);
     pthread_create(&gps_thread, NULL, gps, NULL);
+    pthread_create(&rs485_thread, NULL, rs485, NULL);
     pthread_create(&lora_thread, NULL, lora, NULL);
 
     struct sigaction sig = { 0 };
@@ -53,6 +56,7 @@ int main(int argc, char** argv)
 
     pthread_join(can_thread, NULL);
     pthread_join(gps_thread, NULL);
+    pthread_join(rs485_thread, NULL);
     pthread_join(lora_thread, NULL);
 
     return EXIT_SUCCESS;

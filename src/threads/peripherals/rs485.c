@@ -1,36 +1,57 @@
 #include <threads/peripherals/rs485.h>
 
-const int EN_RS485[] = { 4 };
+#define GPIO_CHIP "/dev/gpiochip0"
+#define RS485_DEVICE "/dev/ttyS0" // TODO check if correct
+#define EN_RS485 4
 
-int rs485_connect()
+void* rs485(void* arg)
 {
-    // struct gpiod_chip *chip = gpiod_chip_open("/dev/gpiochip0");
-    // assert(chip != NULL);
+    int ret;
 
-    // struct gpiod_line_settings *settings = gpiod_line_settings_new();
-    // gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_OUTPUT);
-    // gpiod_line_settings_set_output_value(settings, GPIOD_LINE_VALUE_INACTIVE); // Pull down
+    // Initialize GPIO
+    struct gpiod_chip* chip = gpiod_chip_open(GPIO_CHIP);
+    if (!chip) {
+        printf("RS485: Failed to open GPIO chip - %s\n", strerror(errno));
+        return (void*)EXIT_FAILURE;
+    }
 
-    // struct gpiod_line_config *line_config = gpiod_line_config_new();
-    // gpiod_line_config_add_line_settings(line_config, EN_RS485, 1, settings);
+    struct gpiod_line* line = gpiod_chip_get_line(chip, EN_RS485);
+    if (!line) {
+        printf("RS485: Failed to get line - %s\n", strerror(errno));
+        gpiod_chip_close(chip);
+        return (void*)EXIT_FAILURE;
+    }
 
-    // struct gpiod_request_config *request_config = gpiod_request_config_new();
-    // gpiod_request_config_set_consumer(request_config, "rs485-pull-down");
-    // struct gpiod_line_request *request = gpiod_chip_request_lines(chip, request_config, line_config);
+    // Pull EN_RS485 DOWN
+    ret = gpiod_line_request_output(line, "telemetry", 0);
+    if (ret < 0) {
+        printf("RS485: Requesting line as output failed - %s\n", strerror(errno));
+        gpiod_line_release(line);
+        gpiod_chip_close(chip);
+        return (void*)EXIT_FAILURE;
+    }
 
-    // // Release GPIO
-    // gpiod_request_config_free(request_config);
-    // gpiod_line_config_free(line_config);
-    // gpiod_line_settings_free(settings);
-    // gpiod_chip_close(chip);
+    printf("RS485: EN_RS485 set to LOW\n");
 
-    // gpiod_line_request_release(request);
+    // Open the serial device
+    int rs485_port = serial_get_device(RS485_DEVICE, B9600);
+    assert(rs485_port > 0);
 
-    return EXIT_SUCCESS;
-}
+    // Read/Write
+    // TODO maybe add some way to break out of the loop to free the resources...
+    uint8_t buf[256];
 
-int rs485_disconnect()
-{
-    // TODO close serial device (right now we're not even opening it lol)
-    return EXIT_SUCCESS;
+    while (true) {
+        int n = read(rs485_port, buf, sizeof(buf) - 1);
+        if (n > 0) {
+            buf[n] = '\0';
+            printf("RS485: Received %s\n", buf);
+        }
+        sleep(1);
+    }
+
+    // Free resources
+    gpiod_line_release(line);
+    gpiod_chip_close(chip);
+    return (void*)EXIT_SUCCESS;
 }
