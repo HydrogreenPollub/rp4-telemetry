@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     // Split program into multiple threads
     pthread_create(&can_thread, NULL, can, NULL);
     pthread_create(&gps_thread, NULL, gps, NULL);
-    pthread_create(&rs485_thread, NULL, rs485, NULL);
+    // pthread_create(&rs485_thread, NULL, rs485, NULL);
     pthread_create(&lora_thread, NULL, lora, NULL);
 
     struct sigaction sig = { 0 };
