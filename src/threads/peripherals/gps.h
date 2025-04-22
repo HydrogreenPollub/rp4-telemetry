@@ -1,5 +1,8 @@
-#ifndef GPS_H
-#define GPS_H
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <utils/data.h>
 #include <utils/minmea/minmea.h>
@@ -9,4 +12,6 @@
 
 void* gps(void* arg);
 
+#ifdef __cplusplus
+}
 #endif

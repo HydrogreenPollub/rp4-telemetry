@@ -1,5 +1,8 @@
-#ifndef RS485_H
-#define RS485_H
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <utils/serial.h>
 
@@ -13,4 +16,6 @@
 
 void* rs485(void* arg);
 
+#ifdef __cplusplus
+}
 #endif

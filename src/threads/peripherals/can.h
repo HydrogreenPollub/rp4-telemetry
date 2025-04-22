@@ -1,5 +1,8 @@
-#ifndef CAN_H
-#define CAN_H
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <utils/can_ids/can_ids.h>
 #include <utils/data.h>
@@ -19,4 +22,6 @@
 
 void* can(void* arg);
 
+#ifdef __cplusplus
+}
 #endif

@@ -5,7 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-Wall)
 
-file(GLOB_RECURSE SOURCES "src/*.c" "src/**/*.c")
+file(GLOB_RECURSE SOURCES "src/*.c" "src/**/*.c" "src/*.cpp" "src/**/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

@@ -1,5 +1,8 @@
-#ifndef LORA_H
-#define LORA_H
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <utils/data.h>
 #include <utils/serial.h>
@@ -15,4 +18,6 @@
 
 void* lora(void* arg);
 
+#ifdef __cplusplus
+}
 #endif
