@@ -4,6 +4,7 @@
 
 void* gps(void* arg)
 {
+    (void)arg;
     FILE* gps = fopen(GPS_DEVICE, "r");
     if (gps == NULL) {
         perror("GPS: Couldn't open device file...\n");

@@ -1,5 +1,8 @@
-#ifndef DATA_H
-#define DATA_H
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <pthread.h>
 #include <stdbool.h>
@@ -18,4 +21,6 @@
 
 const uint8_t* read_data(void);
 
+#ifdef __cplusplus
+}
 #endif

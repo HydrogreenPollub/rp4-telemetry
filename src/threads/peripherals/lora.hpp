@@ -1,15 +1,10 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <utils/data.h>
 #include <utils/serial.h>
+#include <utils/serial_port.hpp>
 
-#include <assert.h>
-#include <stdbool.h>
-#include <string.h>
+#include <vector>
 
 #include <fcntl.h>
 #include <stdint.h>
@@ -17,7 +12,3 @@ extern "C" {
 #include <unistd.h>
 
 void* lora(void* arg);
-
-#ifdef __cplusplus
-}
-#endif

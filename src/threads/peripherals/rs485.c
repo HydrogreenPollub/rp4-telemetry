@@ -6,6 +6,7 @@
 
 void* rs485(void* arg)
 {
+    (void)arg;
     // int ret;
 
     // // Initialize GPIO

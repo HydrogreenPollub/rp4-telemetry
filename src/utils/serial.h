@@ -1,5 +1,8 @@
-#ifndef SERIAL_H
-#define SERIAL_H
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <assert.h>
 #include <fcntl.h>
@@ -9,4 +12,6 @@
 
 int serial_get_device(char* device_file, int baudrate);
 
+#ifdef __cplusplus
+}
 #endif
