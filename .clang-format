@@ -1,2 +1,2 @@
 BasedOnStyle: WebKit
-Cpp11: true
+IndentWidth: 4

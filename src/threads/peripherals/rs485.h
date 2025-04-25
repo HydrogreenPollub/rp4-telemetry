@@ -4,17 +4,15 @@
 extern "C" {
 #endif
 
-#include <utils/serial.h>
-
 #include <assert.h>
 #include <errno.h>
 #include <gpiod.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-void* rs485(void* arg);
+void *rs485(void *arg);
 
 #ifdef __cplusplus
 }
