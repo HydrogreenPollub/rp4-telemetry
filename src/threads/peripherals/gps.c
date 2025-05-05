@@ -5,6 +5,7 @@
 void* gps(void* arg)
 {
     (void)arg;
+
     FILE* gps = fopen(GPS_DEVICE, "r");
     if (gps == NULL) {
         perror("GPS: Couldn't open device file...\n");
@@ -14,7 +15,8 @@ void* gps(void* arg)
     char line[MINMEA_MAX_SENTENCE_LENGTH] = { 0 };
 
     while (true) {
-        fgets(line, sizeof(line), gps);
+        char* res = fgets(line, sizeof(line), gps);
+        assert(res != NULL);
 
         // TODO do we need to parse other types of sentences???
         enum minmea_sentence_id sentence_id = minmea_sentence_id(line, false);
