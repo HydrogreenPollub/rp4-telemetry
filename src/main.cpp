@@ -1,13 +1,13 @@
 #include <threads/peripherals/can.hpp>
 #include <threads/peripherals/gps.h>
 #include <threads/peripherals/lora.hpp>
-#include <threads/peripherals/rs485.h>
+#include <threads/peripherals/rs485.hpp>
 #include <utils/data.h>
 
 #include <atomic>
 #include <csignal>
-#include <thread>
 #include <iostream>
+#include <thread>
 
 static std::atomic<bool> running(true);
 
@@ -21,12 +21,12 @@ void sigaction_handler(int signum)
 int main()
 {
     // Split program into multiple threads
-    std::thread can_thread = std::thread(Can{});
+    std::thread can_thread = std::thread(Can {});
     std::thread gps_thread = std::thread(gps, nullptr);
     // std::thread rs485_thread = std::thread(rs485);
     std::thread lora_thread = std::thread(lora, nullptr);
 
-    struct sigaction sig = { };
+    struct sigaction sig = {};
     sig.sa_handler = sigaction_handler;
     sigaction(SIGINT, &sig, NULL);
 
@@ -34,10 +34,13 @@ int main()
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    if (can_thread.joinable()) can_thread.join();
-    if (gps_thread.joinable()) gps_thread.join();
+    if (can_thread.joinable())
+        can_thread.join();
+    if (gps_thread.joinable())
+        gps_thread.join();
     // if (rs485_thread.joinable()) rs485_thread.join();
-    if (lora_thread.joinable()) lora_thread.join();
+    if (lora_thread.joinable())
+        lora_thread.join();
 
     return EXIT_SUCCESS;
 }

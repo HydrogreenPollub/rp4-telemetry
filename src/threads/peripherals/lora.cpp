@@ -1,5 +1,3 @@
-#include "data.h"
-#include <thread>
 #include <threads/peripherals/lora.hpp>
 
 #define LORA_DEVICE "/dev/ttyS0"

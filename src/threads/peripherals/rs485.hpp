@@ -1,8 +1,8 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <utils/serial_port.hpp>
+
+#include <thread>
 
 #include <assert.h>
 #include <errno.h>
@@ -12,8 +12,4 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-void *rs485(void *arg);
-
-#ifdef __cplusplus
-}
-#endif
+void* rs485(void* arg);
