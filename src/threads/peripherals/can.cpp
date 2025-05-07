@@ -1,8 +1,5 @@
 #include "can_ids/can_ids.h"
 #include "data.h"
-#include <chrono>
-#include <stdexcept>
-#include <thread>
 #include <threads/peripherals/can.hpp>
 
 void Can::bind()

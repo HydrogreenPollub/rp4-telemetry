@@ -1,37 +1,26 @@
 #include <threads/peripherals/rs485.hpp>
 
-#define GPIO_CHIP "/dev/gpiochip0"
-#define RS485_DEVICE "/dev/ttyS0" // TODO check if correct
+#define GPIO_CHIP "gpiochip0"
+#define RS485_DEVICE "/dev/ttyS1" // TODO check if correct
 #define EN_RS485 4
 
 void* rs485(void* arg)
 {
     (void)arg;
-    int ret;
 
     // Initialize GPIO
-    struct gpiod_chip* chip = gpiod_chip_open(GPIO_CHIP);
+    gpiod::chip chip(GPIO_CHIP);
     if (!chip) {
-        printf("RS485: Failed to open GPIO chip - %s\n", strerror(errno));
-        return (void*)EXIT_FAILURE;
+        throw std::runtime_error("RS485: Failed to open GPIO chip");
     }
 
-    struct gpiod_line* line = gpiod_chip_get_line(chip, EN_RS485);
+    auto line = chip.get_line(EN_RS485);
     if (!line) {
-        printf("RS485: Failed to get line - %s\n", strerror(errno));
-        gpiod_chip_close(chip);
-        return (void*)EXIT_FAILURE;
+        throw std::runtime_error("RS485: Failed to get line");
     }
 
     // Pull EN_RS485 DOWN
-    ret = gpiod_line_request_output(line, "telemetry", 0);
-    if (ret < 0) {
-        printf("RS485: Requesting line as output failed - %s\n", strerror(errno));
-        gpiod_line_release(line);
-        gpiod_chip_close(chip);
-        return (void*)EXIT_FAILURE;
-    }
-
+    line.request({ "en_rs485", gpiod::line_request::DIRECTION_OUTPUT, 0 }, 0);
     std::cout << "RS485: EN_RS485 set to LOW" << std::endl;
 
     // Open the serial device
@@ -48,7 +37,6 @@ void* rs485(void* arg)
     }
 
     // Free resources
-    gpiod_line_release(line);
-    gpiod_chip_close(chip);
+    line.release();
     return (void*)EXIT_SUCCESS;
 }
