@@ -34,6 +34,5 @@ void* rs485(void* arg)
     }
 
     // Free resources
-    line.release();
     return (void*)EXIT_SUCCESS;
 }
