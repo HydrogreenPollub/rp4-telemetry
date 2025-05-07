@@ -8,7 +8,7 @@
 void Can::bind()
 {
     this->socket = ::socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (this->socket) {
+    if (!this->socket) {
         throw std::runtime_error("CAN: Creating socket failed");
     }
 
