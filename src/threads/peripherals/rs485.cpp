@@ -1,6 +1,6 @@
 #include <threads/peripherals/rs485.hpp>
 
-#define GPIO_CHIP "gpiochip0"
+#define GPIO_CHIP "/dev/gpiochip0"
 #define RS485_DEVICE "/dev/ttyS1" // TODO check if correct
 #define EN_RS485 4
 
@@ -8,19 +8,16 @@ void* rs485(void* arg)
 {
     (void)arg;
 
-    // Initialize GPIO
-    gpiod::chip chip(GPIO_CHIP);
-    if (!chip) {
-        throw std::runtime_error("RS485: Failed to open GPIO chip");
-    }
+    auto request = ::gpiod::chip(GPIO_CHIP)
+                       .prepare_request()
+                       .set_consumer("set_rs485_low")
+                       .add_line_settings(
+                           EN_RS485,
+                           ::gpiod::line_settings().set_direction(
+                               ::gpiod::line::direction::OUTPUT))
+                       .do_request();
 
-    auto line = chip.get_line(EN_RS485);
-    if (!line) {
-        throw std::runtime_error("RS485: Failed to get line");
-    }
-
-    // Pull EN_RS485 DOWN
-    line.request({ "en_rs485", gpiod::line_request::DIRECTION_OUTPUT, 0 }, 0);
+    request.set_value(0);
     std::cout << "RS485: EN_RS485 set to LOW" << std::endl;
 
     // Open the serial device
