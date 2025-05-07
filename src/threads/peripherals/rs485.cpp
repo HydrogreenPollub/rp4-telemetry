@@ -17,7 +17,7 @@ void* rs485(void* arg)
                                ::gpiod::line::direction::OUTPUT))
                        .do_request();
 
-    request.set_value(EN_RS485, 0);
+    request.set_value(EN_RS485, ::gpiod::line::value::INACTIVE);
     std::cout << "RS485: EN_RS485 set to LOW" << std::endl;
 
     // Open the serial device
