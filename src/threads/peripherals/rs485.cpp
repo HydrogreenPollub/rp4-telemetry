@@ -1,27 +1,34 @@
 #include <threads/peripherals/rs485.hpp>
 
 #define GPIO_CHIP "/dev/gpiochip0"
-#define RS485_DEVICE "/dev/ttyS1" // TODO check if correct
-#define EN_RS485 4
+#define RS485_DEVICE "/dev/ttySC0"
+
+#define RS485_TXDEN_1 27
+#define RS485_TXDEN_2 22
 
 void* rs485(void* arg)
 {
     (void)arg;
 
+    // Setup gpiod
+    const ::gpiod::line::offsets line_offsets = { RS485_TXDEN_1, RS485_TXDEN_2 };
+
+    // Set both TXDEN to OUTPUT
     auto request = ::gpiod::chip(GPIO_CHIP)
                        .prepare_request()
-                       .set_consumer("set_rs485_low")
+                       .set_consumer("rs485-TXDEN")
                        .add_line_settings(
-                           EN_RS485,
+                           line_offsets,
                            ::gpiod::line_settings().set_direction(
                                ::gpiod::line::direction::OUTPUT))
                        .do_request();
-
-    request.set_value(EN_RS485, ::gpiod::line::value::INACTIVE);
-    std::cout << "RS485: EN_RS485 set to LOW" << std::endl;
+    // TXDEN_1 decides if we're reading or writing
+    // 0 - Transmit
+    // 1 - Receive
+    request.set_value(RS485_TXDEN_1, ::gpiod::line::value::ACTIVE);
 
     // Open the serial device
-    SerialPort port(RS485_DEVICE, B9600);
+    SerialPort port(RS485_DEVICE, B115200);
     std::string buf;
 
     // TODO maybe add some way to break out of the loop to free the resources...
@@ -32,7 +39,4 @@ void* rs485(void* arg)
         }
         std::this_thread::sleep_for(std::chrono::seconds(5));
     }
-
-    // Free resources
-    return (void*)EXIT_SUCCESS;
 }
