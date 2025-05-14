@@ -1,3 +1,4 @@
+#include <termios.h>
 #include <threads/peripherals/rs485.hpp>
 
 #define GPIO_CHIP "/dev/gpiochip0"
@@ -28,7 +29,7 @@ void* rs485(void* arg)
     request.set_value(RS485_TXDEN_1, ::gpiod::line::value::ACTIVE);
 
     // Open the serial device
-    SerialPort port(RS485_DEVICE, B115200);
+    SerialPort port(RS485_DEVICE, B921600);
     std::string buf;
 
     // TODO maybe add some way to break out of the loop to free the resources...
