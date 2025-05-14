@@ -23,7 +23,7 @@ int main()
     // Split program into multiple threads
     std::thread can_thread = std::thread(Can {});
     std::thread gps_thread = std::thread(gps, nullptr);
-    // std::thread rs485_thread = std::thread(rs485);
+    std::thread rs485_thread = std::thread(rs485, nullptr);
     std::thread lora_thread = std::thread(lora, nullptr);
 
     struct sigaction sig = {};

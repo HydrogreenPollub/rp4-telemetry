@@ -27,6 +27,7 @@ void* gps(void* arg)
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
                 set_gpsSpeed(minmea_tofloat(&frame.speed));
+                // TODO add altitude and time
             }
             break;
         }
