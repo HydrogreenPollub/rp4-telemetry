@@ -3,11 +3,23 @@
 #define LORA_DEVICE "/dev/ttyS0"
 constexpr size_t FRAME_SIZE = TSDATA_BUFFER_SIZE + 4;
 
+namespace asio = boost::asio;
+
 void* lora(void* arg)
 {
     (void)arg;
 
     SerialPort port(LORA_DEVICE, B9600);
+    asio::io_context io;
+    asio::serial_port serial(io);
+
+    serial.open(LORA_DEVICE);
+    serial.set_option(asio::serial_port::baud_rate(9600));
+    serial.set_option(asio::serial_port::character_size(8));
+    serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
+    serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+    serial.set_option(asio::serial_port::flow_control(asio::serial_port::flow_control::none));
+
     std::vector<uint8_t> frame(FRAME_SIZE);
 
     while (true) {
@@ -26,8 +38,9 @@ void* lora(void* arg)
         }
         printf("\n");
 
-        port.write(std::string(frame.begin(), frame.end())); // TODO figure out why << isn't working
-
+        serial.write_some(asio::buffer(frame));
         std::this_thread::sleep_for(std::chrono::seconds(5));
     }
+
+    return nullptr;
 }

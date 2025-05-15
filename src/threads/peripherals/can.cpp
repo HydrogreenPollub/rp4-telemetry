@@ -108,14 +108,6 @@ void Can::operator()()
                 set_fuelCellTemperature(*(float*)frame.data);
                 break;
 
-            case CAN_ID_VEHICLE_SPEED:
-                set_vehicleSpeed(*(float*)frame.data);
-                break;
-
-            case CAN_ID_HYDROGEN_PRESSURE:
-                set_hydrogenPressure(*(float*)frame.data);
-                break;
-
             default:
                 std::cout << "CAN: can_id " << frame.can_id
                           << " is currently not supported" << std::endl;

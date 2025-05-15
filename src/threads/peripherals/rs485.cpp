@@ -1,4 +1,3 @@
-#include <termios.h>
 #include <threads/peripherals/rs485.hpp>
 
 #define GPIO_CHIP "/dev/gpiochip0"
@@ -6,6 +5,8 @@
 
 #define RS485_TXDEN_1 27
 #define RS485_TXDEN_2 22
+
+namespace asio = boost::asio;
 
 void* rs485(void* arg)
 {
@@ -28,16 +29,54 @@ void* rs485(void* arg)
     // 1 - Receive
     request.set_value(RS485_TXDEN_1, ::gpiod::line::value::ACTIVE);
 
-    // Open the serial device
-    SerialPort port(RS485_DEVICE, B921600);
-    std::string buf;
+    // Create the parser
+    HmiParser parser;
+
+    parser.onMasterMeasurements = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterMeasurements& measurements) {
+        std::cout << "HMI: Master measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
+        (void)measurements;
+    };
+       
+       
+    parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values){
+        std::cout << "HMI: Protium measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
+
+        set_fcVoltage(values.FC_V);
+        set_fcCurrent(values.FC_A);
+    };
+        
+    parser.onProtiumOperatingState = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry (&operatingStateLogEntries)[8]){
+        std::cout << "HMI: Protium operating state @ " << msClockTickCount << "ms (" << cycleClockTickCount << " cycles)" << std::endl;
+        std::cout << "HMI: Current opearting state: " << currentOperatingState << std::endl;
+        std::cout << "HMI: Operating state history:" << std::endl;
+  
+        std::size_t i=0;
+        for (auto& entry: operatingStateLogEntries){
+            std::cout << "HMI: history[" << i++ << "] @ {" << entry.msClockTickCount << "}ms -> " << static_cast<ProtiumOperatingState>(entry.state);
+        }
+    };
+
+    // Open the device
+    asio::io_context io;
+    asio::serial_port serial(io);
+
+    serial.open(RS485_DEVICE);
+    serial.set_option(asio::serial_port::baud_rate(921600));
+    serial.set_option(asio::serial_port::character_size(8));
+    serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+    serial.set_option(asio::serial_port::flow_control(asio::serial_port::flow_control::none));
+
+    std::byte buffer[1] = {};
 
     // TODO maybe add some way to break out of the loop to free the resources...
     while (true) {
-        buf = port.read();
-        if (!buf.empty()) {
-            std::cout << "RS485: Received " << buf << std::endl;
+        std::size_t bytes_received = serial.read_some(asio::buffer(buffer));
+
+        if (bytes_received != 1) {
+            throw std::runtime_error("RS485: Reader failed - read more than 1 bytes");
         }
+
+        parser.processOctet((uint8_t)buffer[0]);
         std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 }

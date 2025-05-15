@@ -7,7 +7,7 @@ SerialPort::SerialPort(const std::string& device_file, int baudrate)
     std::cout << "SERIAL: Opening device " << device_file << " with baudrate "
               << baudrate << std::endl;
 
-    this->file_descriptor = open(device_file.c_str(), O_RDWR | O_NDELAY | O_NONBLOCK);
+    this->file_descriptor = open(device_file.c_str(), O_RDWR);
     if (this->file_descriptor < 0) {
         throw std::runtime_error("SERIAL: Failed to open serial device: " + this->device_file);
     }
