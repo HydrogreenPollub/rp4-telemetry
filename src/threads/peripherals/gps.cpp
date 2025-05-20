@@ -31,7 +31,7 @@ void* gps(void* arg)
         switch (sentence_id) {
         case MINMEA_SENTENCE_RMC: {
             struct minmea_sentence_rmc frame;
-            if (minmea_parse_rmc(&frame, line.c_str)) {
+            if (minmea_parse_rmc(&frame, line.c_str())) {
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
                 set_gpsSpeed(minmea_tofloat(&frame.speed));
