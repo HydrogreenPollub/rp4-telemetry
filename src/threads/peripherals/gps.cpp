@@ -11,7 +11,7 @@ void* gps(void* arg)
     asio::io_context io;
     asio::serial_port serial(io);
 
-    serial.open(LORA_DEVICE);
+    serial.open(GPS_DEVICE);
     serial.set_option(asio::serial_port::baud_rate(115200));
     serial.set_option(asio::serial_port::character_size(8));
     serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
@@ -27,11 +27,11 @@ void* gps(void* arg)
         std::getline(input, line);
 
         // TODO do we need to parse other types of sentences???
-        enum minmea_sentence_id sentence_id = minmea_sentence_id(line, false);
+        enum minmea_sentence_id sentence_id = minmea_sentence_id(line.c_str(), false);
         switch (sentence_id) {
         case MINMEA_SENTENCE_RMC: {
             struct minmea_sentence_rmc frame;
-            if (minmea_parse_rmc(&frame, line)) {
+            if (minmea_parse_rmc(&frame, line.c_str)) {
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
                 set_gpsSpeed(minmea_tofloat(&frame.speed));
