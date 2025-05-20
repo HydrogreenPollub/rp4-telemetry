@@ -2,6 +2,8 @@
 
 #define GPS_DEVICE "/dev/ttyUSB0"
 
+namespace asio = boost::asio;
+
 void* gps(void* arg)
 {
     (void)arg;
@@ -15,8 +17,6 @@ void* gps(void* arg)
     serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
     serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
     serial.set_option(asio::serial_port::flow_control(asio::serial_port::flow_control::none));
-
-    char line[MINMEA_MAX_SENTENCE_LENGTH] = { 0 };
 
     while (true) {
         boost::asio::streambuf buf;

@@ -6,6 +6,7 @@
 #include <boost/asio.hpp>
 
 #include <thread>
+#include <iostream>
 #include <assert.h>
 #include <stdint.h>
 
