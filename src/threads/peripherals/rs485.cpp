@@ -77,6 +77,5 @@ void* rs485(void* arg)
         }
 
         parser.processOctet((uint8_t)buffer[0]);
-        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 }

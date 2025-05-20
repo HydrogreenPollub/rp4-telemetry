@@ -1,5 +1,5 @@
 #include <threads/peripherals/can.hpp>
-#include <threads/peripherals/gps.h>
+#include <threads/peripherals/gps.hpp>
 #include <threads/peripherals/lora.hpp>
 #include <threads/peripherals/rs485.hpp>
 #include <utils/data.h>
@@ -38,7 +38,8 @@ int main()
         can_thread.join();
     if (gps_thread.joinable())
         gps_thread.join();
-    // if (rs485_thread.joinable()) rs485_thread.join();
+    if (rs485_thread.joinable())
+        rs485_thread.join();
     if (lora_thread.joinable())
         lora_thread.join();
 

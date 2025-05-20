@@ -9,7 +9,6 @@ void* lora(void* arg)
 {
     (void)arg;
 
-    SerialPort port(LORA_DEVICE, B9600);
     asio::io_context io;
     asio::serial_port serial(io);
 
