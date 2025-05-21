@@ -40,7 +40,7 @@ void* gps(void* arg)
         case MINMEA_SENTENCE_GGA:
             struct minmea_sentence_gga frame;
             if (minmea_parse_gga(&frame, line.c_str())) {
-                std::cout << "GPS: GGA frame received at time - " << frame.time << std::endl;
+                std::cout << "GPS: GGA frame received at time - " << minmea_tofloat(&frame.time) << std::endl;
 
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
