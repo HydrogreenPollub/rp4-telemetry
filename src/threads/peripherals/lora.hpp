@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utils/data.h>
-#include <utils/serial_port.hpp>
 
 #include <boost/asio.hpp>
 

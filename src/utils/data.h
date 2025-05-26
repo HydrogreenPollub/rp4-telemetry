@@ -19,6 +19,9 @@ extern "C" {
 #include <utils/ts_data.def>
 #undef XSET_TSDATA
 
+// TODO maybe create getters instead
+extern struct TSData telemetry_data;
+
 const uint8_t* read_data(void);
 
 #ifdef __cplusplus

@@ -1,4 +1,5 @@
 #include <threads/peripherals/can.hpp>
+#include <threads/peripherals/csv.hpp>
 #include <threads/peripherals/gps.hpp>
 #include <threads/peripherals/lora.hpp>
 #include <threads/peripherals/rs485.hpp>
@@ -22,6 +23,7 @@ int main()
 {
     // Split program into multiple threads
     std::thread can_thread = std::thread(Can {});
+    std::thread csv_thread = std::thread(csv, nullptr);
     std::thread gps_thread = std::thread(gps, nullptr);
     std::thread rs485_thread = std::thread(rs485, nullptr);
     std::thread lora_thread = std::thread(lora, nullptr);
@@ -36,6 +38,8 @@ int main()
 
     if (can_thread.joinable())
         can_thread.join();
+    if (csv_thread.joinable())
+        csv_thread.join();
     if (gps_thread.joinable())
         gps_thread.join();
     if (rs485_thread.joinable())
