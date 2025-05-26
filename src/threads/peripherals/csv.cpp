@@ -58,7 +58,7 @@ void* csv(void* arg)
             << static_cast<int>(telemetry_data.lapNumber)
             << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     // TODO somehow exit loop to clean up resources
