@@ -43,20 +43,44 @@
         
 //         HmiParser parser;
 
-
+        
 //         parser.onMasterMeasurements = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterMeasurements& measurements){
 //             spdlog::info("Master measurements @ {}ms ({} cycles)", msClockTickCount, cycleClockTickCount);
 
-//             spdlog::info("ai1 = {:.4f}, ai2 = {:.4f}, ai3 = {:.4f}, ai4 = {:.4f}, ai5 = {:.4f}, ai6 = {:.4f}, ai7 = {:.4f}, ISupply = {:.4f}", 
-//                 measurements.ai1, measurements.ai2, measurements.ai3, measurements.ai4, measurements.ai5, measurements.ai6, measurements.ai7, measurements.isupply);
-
-//             spdlog::info("ai9 = {:.4f}, ai10 = {:.4f}, ai11 = {:.4f}, ai12 = {:.4f}, VSupply = {:.4f}, hvi1 = {:.4f}, hvi2 = {:.4f}, hvi3 = {:.4f}", 
-//                 measurements.ai9, measurements.ai10, measurements.ai11, measurements.ai12, measurements.vsupply, measurements.hvi1, measurements.hvi2, measurements.hvi3);
-
+//             spdlog::info("fuelCellOutputCurrent = {:.4f}", measurements.fuelCellOutputCurrent);
+//             spdlog::info("supercapacitorCurrent = {:.4f}", measurements.supercapacitorCurrent);
+//             spdlog::info("motorControllerSupply = {:.4f}", measurements.motorControllerSupply);
+//             spdlog::info("ai4 = {:.4f}", measurements.ai4);
+//             spdlog::info("ai5 = {:.4f}", measurements.ai5);
+//             spdlog::info("accelPedalVoltage = {:.4f}", measurements.accelPedalVoltage);
+//             spdlog::info("brakePedalVoltage = {:.4f}", measurements.brakePedalVoltage);
+//             spdlog::info("accessoryBatteryCurrent = {:.4f}", measurements.accessoryBatteryCurrent);
+//             spdlog::info("hydrogenHighPressure = {:.4f}", measurements.hydrogenHighPressure);
+//             spdlog::info("hydrogenLeakageSensorVoltage = {:.4f}", measurements.hydrogenLeakageSensorVoltage);
+//             spdlog::info("ai10 = {:.4f}", measurements.ai10);
+//             spdlog::info("ai11 = {:.4f}", measurements.ai11);
+//             spdlog::info("accessoryBatteryVoltage = {:.4f}", measurements.accessoryBatteryVoltage);
+//             spdlog::info("fuelCellOutputVoltage = {:.4f}", measurements.fuelCellOutputVoltage);
+//             spdlog::info("supercapacitorVoltage = {:.4f}", measurements.supercapacitorVoltage);
+//             spdlog::info("motorControllerSupplyVoltage = {:.4f}", measurements.motorControllerSupplyVoltage);
+            
 //             spdlog::info("DIN = {:2x}", measurements.din);
+
+//             spdlog::info("rpm = {:.4f}", measurements.rpm);
+//             spdlog::info("speed = {:.4f}", measurements.speed);
 
 //         };
 
+//         parser.onMasterStatus = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterStatus& status){
+//             spdlog::info("Master status @ {}ms ({} cycles)", msClockTickCount, cycleClockTickCount);
+
+//             spdlog::info("state = {}", magic_enum::enum_name(static_cast<MasterStatus::State>(status.state)));
+//             spdlog::info("mainValveEnableOutput = {}", status.mainValveEnableOutput);
+//             spdlog::info("motorControllerEnableOutput = {}", status.motorControllerEnableOutput);
+//             spdlog::info("accelOutputVoltage = {:.4f}", status.accelOutputVoltage);
+//             spdlog::info("brakeOutputVoltage = {:.4f}", status.brakeOutputVoltage);
+//         };
+        
 
 //         parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values){
 //             spdlog::info("Protium values @ {}ms ({} cycles)", msClockTickCount, cycleClockTickCount);
@@ -64,8 +88,8 @@
 //             spdlog::info("FC_V = {:.4f}, FC_A = {:.4f}, FC_W = {:.4f}, Energy = {:.4f}, FCT1 = {:.4f}, FAN = {:.4f}", values.FC_V, values.FC_A, values.FC_W, values.Energy, values.FCT1, values.FAN);
 //             spdlog::info("H2P1 = {:.4f}, H2P2 = {:.4f}, TankP = {:.4f}, TankT = {:.4f}, V_Set = {:.4f}, I_Set = {:.4f}", values.H2P1, values.H2P2, values.TankP, values.TankT, values.V_Set, values.I_Set);
 //             spdlog::info("UCB_V = {:.4f}, Stasis_selector = {:.4f}, STASIS_V1 = {:.4f}, STASIS_V2 = {:.4f}, Number_of_cell = {}", values.UCB_V, values.Stasis_selector, values.STASIS_V1, values.STASIS_V2, values.Number_of_cell);
+//             spdlog::info("FCT2 = {:.4f}, BLW = {:.4f}, BattV = {:.4f}, IP = {:.4f}, TP = {}", values.FCT2, values.BLW, values.BattV, values.IP, values.TP);
 //         };
-
 
 //         parser.onProtiumOperatingState = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry (&operatingStateLogEntries)[8]){
 //             spdlog::info("Protium operating state @ {}ms ({} cycles)", msClockTickCount, cycleClockTickCount);

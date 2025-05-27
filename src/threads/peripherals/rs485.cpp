@@ -33,25 +33,34 @@ void* rs485(void* arg)
     HmiParser parser;
 
     parser.onMasterMeasurements = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterMeasurements& measurements) {
-        std::cout << "HMI: Master measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
+        std::cout << "HMI: Master measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)" << std::endl;
         (void)measurements;
     };
-       
-       
-    parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values){
+
+    parser.onMasterStatus = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterStatus& status) {
+        std::cout << "HMI: Master status @ " << msClockTickCount << "ms (" << cycleClockTickCount << " cycles)" << std::endl;
+
+        std::cout << "HMI: state = " << static_cast<MasterStatus::State>(status.state) << std::endl;
+        std::cout << "HMI: mainValveEnableOutput = " << status.mainValveEnableOutput << std::endl;
+        std::cout << "HMI: motorControllerEnableOutput = " << status.motorControllerEnableOutput << std::endl;
+        std::cout << "HMI: accelOutputVoltage = " << status.accelOutputVoltage << std::endl;
+        std::cout << "HMI: brakeOutputVoltage = " << status.brakeOutputVoltage << std::endl;
+    };
+
+    parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values) {
         std::cout << "HMI: Protium measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
 
         set_fcVoltage(values.FC_V);
         set_fcCurrent(values.FC_A);
     };
-        
-    parser.onProtiumOperatingState = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry (&operatingStateLogEntries)[8]){
+
+    parser.onProtiumOperatingState = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry(&operatingStateLogEntries)[8]) {
         std::cout << "HMI: Protium operating state @ " << msClockTickCount << "ms (" << cycleClockTickCount << " cycles)" << std::endl;
         std::cout << "HMI: Current opearting state: " << currentOperatingState << std::endl;
         std::cout << "HMI: Operating state history:" << std::endl;
-  
-        std::size_t i=0;
-        for (auto& entry: operatingStateLogEntries){
+
+        std::size_t i = 0;
+        for (auto& entry : operatingStateLogEntries) {
             std::cout << "HMI: history[" << i++ << "] @ {" << entry.msClockTickCount << "}ms -> " << static_cast<ProtiumOperatingState>(entry.state);
         }
     };

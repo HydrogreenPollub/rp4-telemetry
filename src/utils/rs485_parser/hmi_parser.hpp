@@ -14,30 +14,70 @@ static_assert(sizeof(uint32_t) == 4, "");
 
 
 struct MasterMeasurements{
-    float ai1;
-    float ai2;
-    float ai3;
+    float fuelCellOutputCurrent;
+    float supercapacitorCurrent;
+    float motorControllerSupply;
     float ai4;
     float ai5;
-
-    float ai6;
-    float ai7;
-    float isupply;
-    float ai9;
+    float accelPedalVoltage;
+    float brakePedalVoltage;
+    float accessoryBatteryCurrent;
+    float hydrogenHighPressure;
+    float hydrogenLeakageSensorVoltage;
     float ai10;
     float ai11;
-    float ai12;
+    float accessoryBatteryVoltage;
 
-    float vsupply;
-
-    float hvi1;
-    float hvi2;
-    float hvi3;
+    float fuelCellOutputVoltage;
+    float supercapacitorVoltage;
+    float motorControllerSupplyVoltage;
 
     uint8_t din;
+
+    float rpm;
+
+    float speed;
+};
+
+struct MasterStatus{
+    enum State: uint8_t{
+        Idle,
+        Running,
+        Shutdown,
+        Failure
+    };
+
+    uint8_t state = Idle;
+
+    bool mainValveEnableOutput = false;
+    bool motorControllerEnableOutput = false;
+    float accelOutputVoltage = 0.0f;
+    float brakeOutputVoltage = 0.0f;
 };
 
 struct ProtiumValues{
+    /*float FC_V;
+    float FC_A;
+    float FC_W;
+    float Energy;
+    float FCT1;
+    float FAN;
+    float H2P1;
+    float H2P2;
+    float TankP;
+    float TankT;
+    float V_Set;
+    float I_Set;
+    float UCB_V;
+    float Stasis_selector;
+    float STASIS_V1;
+    float STASIS_V2;
+    float Number_of_cell;
+    float FCT2;
+    float BLW;
+    float BattV;
+    float IP;
+    float TP;*/
     float FC_V;
     float FC_A;
     float FC_W;
@@ -55,6 +95,11 @@ struct ProtiumValues{
     float STASIS_V1;
     float STASIS_V2;
     float Number_of_cell;
+    float FCT2;
+    float BLW;
+    float BattV;
+    float IP;
+    float TP;
 };
 
 enum ProtiumOperatingState: uint8_t{
@@ -84,6 +129,7 @@ struct ProtiumOperatingStateLogEntry{
 class HmiParser{
 public:
     std::function<void (uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterMeasurements& measurements)> onMasterMeasurements;
+    std::function<void (uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterStatus& status)> onMasterStatus;
     std::function<void (uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values)> onProtiumValues;
     std::function<void (uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry (&operatingStateLogEntries)[8])> onProtiumOperatingState;
 
@@ -273,6 +319,25 @@ private:
         return true;
     }
 
+    bool processMasterStatusMsg()
+    {
+        MasterStatus status = {};
+
+        uint32_t messageId = 0;
+        uint32_t msClockTickCount = 0;
+        uint32_t cycleClockTickCount = 0;
+
+        if (!receive(messageId, msClockTickCount, cycleClockTickCount, status)){
+            std::cout << "HMI: Could not parse master status message" << std::endl;
+            return false;
+        }
+
+        if (onMasterStatus)
+            onMasterStatus(msClockTickCount, cycleClockTickCount, status);
+
+        return true;
+    }
+
     bool processProtiumValuesMsg()
     {
         ProtiumValues values = {};
@@ -323,6 +388,7 @@ private:
 
         switch(static_cast<HmiMessageId>(messageId)){
             case HmiMessageId::MasterMeasurements: return processMasterMeasurementsMsg();
+            case HmiMessageId::MasterStatus: return processMasterStatusMsg();
             case HmiMessageId::ProtiumValues: return processProtiumValuesMsg();
             case HmiMessageId::ProtiumOperatingState: return processProtiumOperatingStateMsg();
         }
@@ -336,6 +402,7 @@ private:
 
     enum struct HmiMessageId: uint32_t{
         MasterMeasurements      = 0xE7696EFE,
+        MasterStatus            = 0x5D79ED90,
         ProtiumValues           = 0xB1236E43,
         ProtiumOperatingState   = 0x093C3952
     };

@@ -148,7 +148,7 @@ enum CAPN_TYPE {
 	CAPN_LIST = 2,
 	CAPN_PTR_LIST = 3,
 	CAPN_BIT_LIST = 4,
-	CAPN_FAR_POINTER = 5,
+	CAPN_FAR_POINTER = 5
 };
 
 struct capn_ptr {

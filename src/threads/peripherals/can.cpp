@@ -1,5 +1,3 @@
-#include "can_ids/can_ids.h"
-#include "data.h"
 #include <threads/peripherals/can.hpp>
 
 void Can::bind()

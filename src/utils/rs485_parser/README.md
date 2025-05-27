@@ -30,6 +30,9 @@ Kolejne parametry zależą od konkretnej wiadomości.
 ### onMasterMeasurements
 Ten callback jest wywoływany, gdy przyjdą dane zmierzone bezpośrednio przez Mastera. Tu prawdopodobnie będą największe zmiany. Dane znajdują się w parametrze "measurements".
 
+### onMasterStatus
+Ten callback jest wywoływany, gdy przyjdą dane o aktualnym stanie pracy Mastera. Tu prawdopodobnie będą największe zmiany. Dane znajdują się w parametrze "status".
+
 ### onProtiumValues
 Ten callback będzie wywoływany, gdy przyjdą parametry przesłane ze sterownika Protium do Mastera. Dane znajdują się w parametrze "values".
 
