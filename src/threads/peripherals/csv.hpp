@@ -2,9 +2,9 @@
 
 #include <utils/data.h>
 
-#include <thread>
-#include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <thread>
 
 void* csv(void* arg);

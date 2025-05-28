@@ -6,9 +6,9 @@
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
 
-#include <thread>
-#include <iostream>
 #include <assert.h>
+#include <iostream>
 #include <stdint.h>
+#include <thread>
 
 void* gps(void* arg);

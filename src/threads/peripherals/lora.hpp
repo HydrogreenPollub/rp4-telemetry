@@ -4,9 +4,9 @@
 
 #include <boost/asio.hpp>
 
-#include <thread>
-#include <vector>
 #include <stdint.h>
+#include <thread>
 #include <unistd.h>
+#include <vector>
 
 void* lora(void* arg);

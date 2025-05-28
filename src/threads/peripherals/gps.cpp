@@ -27,7 +27,7 @@ void* gps(void* arg)
 
     while (true) {
         boost::asio::streambuf buf;
-        boost::asio::read_until(serial, buf, "\r\n");  // NMEA sentences end with CRLF
+        boost::asio::read_until(serial, buf, "\r\n"); // NMEA sentences end with CRLF
 
         std::istream input(&buf);
         std::string line;

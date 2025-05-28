@@ -7,8 +7,8 @@
 
 #include <chrono>
 #include <gpiod.hpp>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 
 void* rs485(void* arg);
