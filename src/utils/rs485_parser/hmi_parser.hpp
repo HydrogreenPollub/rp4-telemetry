@@ -14,9 +14,9 @@ static_assert(sizeof(uint32_t) == 4, "");
 
 
 struct MasterMeasurements{
-    float fuelCellOutputCurrent;
+    float ai1;
     float supercapacitorCurrent;
-    float motorControllerSupply;
+    float ai3;
     float ai4;
     float ai5;
     float accelPedalVoltage;
@@ -24,8 +24,8 @@ struct MasterMeasurements{
     float accessoryBatteryCurrent;
     float hydrogenHighPressure;
     float hydrogenLeakageSensorVoltage;
-    float ai10;
-    float ai11;
+    float fuelCellOutputCurrent;
+    float motorControllerSupplyCurrent;
     float accessoryBatteryVoltage;
 
     float fuelCellOutputVoltage;
@@ -47,6 +47,8 @@ struct MasterStatus{
         Failure
     };
 
+    uint8_t serialNumber = 1;
+
     uint8_t state = Idle;
 
     bool mainValveEnableOutput = false;
@@ -56,28 +58,6 @@ struct MasterStatus{
 };
 
 struct ProtiumValues{
-    /*float FC_V;
-    float FC_A;
-    float FC_W;
-    float Energy;
-    float FCT1;
-    float FAN;
-    float H2P1;
-    float H2P2;
-    float TankP;
-    float TankT;
-    float V_Set;
-    float I_Set;
-    float UCB_V;
-    float Stasis_selector;
-    float STASIS_V1;
-    float STASIS_V2;
-    float Number_of_cell;
-    float FCT2;
-    float BLW;
-    float BattV;
-    float IP;
-    float TP;*/
     float FC_V;
     float FC_A;
     float FC_W;
