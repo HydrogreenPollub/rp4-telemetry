@@ -7,6 +7,8 @@ auto telemetry_data = global_message.initRoot<TSData>();
 
 std::vector<uint8_t> read_data(void)
 {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    
     kj::Array<capnp::word> words = capnp::messageToFlatArray(global_message);
     kj::ArrayPtr<capnp::word> wordPtr = words.asPtr();
 
