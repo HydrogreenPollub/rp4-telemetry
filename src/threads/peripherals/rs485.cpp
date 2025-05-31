@@ -50,6 +50,7 @@ void* rs485(void* arg)
     parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values) {
         std::cout << "HMI: Protium measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
 
+        (void)values;
         //set_fcVoltage(values.FC_V);
         //set_fcCurrent(values.FC_A);
     };
