@@ -3,6 +3,11 @@
 capnp::MallocMessageBuilder global_message;
 std::mutex data_mutex;
 
+void init_data(void) {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    global_message.initRoot<TSData>();  // Must be called before read_data()
+}
+
 std::vector<uint8_t> read_data(void)
 {
     std::lock_guard<std::mutex> lock(data_mutex);

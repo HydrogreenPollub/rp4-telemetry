@@ -3,6 +3,7 @@
 #include <threads/peripherals/gps.hpp>
 #include <threads/peripherals/lora.hpp>
 #include <threads/peripherals/rs485.hpp>
+#include <utils/data.hpp>
 
 #include <atomic>
 #include <csignal>
@@ -20,6 +21,9 @@ void sigaction_handler(int signum)
 
 int main()
 {
+    // Initialize capnp
+    init_data();
+
     // Split program into multiple threads
     std::thread can_thread = std::thread(Can {});
     std::thread csv_thread = std::thread(csv, nullptr);

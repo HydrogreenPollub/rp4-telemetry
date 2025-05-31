@@ -13,4 +13,5 @@
 
 #define TSDATA_BUFFER_SIZE 128
 
+void init_data(void);
 std::vector<uint8_t> read_data(void);
