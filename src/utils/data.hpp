@@ -6,12 +6,13 @@
 
 #include <mutex>
 #include <vector>
+#include <string>
 
 #include <capnp/message.h>
 #include <capnp/serialize.h>
 #include <utils/capnp-proto/ts_data.capnp.h>
 
-#define TSDATA_BUFFER_SIZE 128
+#define TSDATA_BUFFER_SIZE 144
 
 void init_data(void);
-std::vector<uint8_t> read_data(void);
+const uint8_t* read_data(void);
