@@ -1,3 +1,6 @@
 [submodule "src/utils/can_ids"]
 	path = src/utils/can_ids
 	url = https://github.com/HydrogreenPollub/can_ids.git
+[submodule "src/utils/capnp-proto"]
+	path = src/utils/capnp-proto
+	url = https://github.com/HydrogreenPollub/capnp-proto.git

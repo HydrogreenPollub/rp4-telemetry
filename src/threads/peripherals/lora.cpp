@@ -22,18 +22,18 @@ void* lora(void* arg)
     std::vector<uint8_t> frame(FRAME_SIZE);
 
     while (true) {
-        const uint8_t* data = read_data();
+        std::vector<uint8_t> data = read_data();
 
         // Frame structure: [0xFF][data][0xEE]
         frame[0] = 0xFF;
-        std::copy(data, data + TSDATA_BUFFER_SIZE, frame.begin() + 1);
+        std::copy(data.begin(), data.end(), frame.begin() + 1);
         frame[TSDATA_BUFFER_SIZE + 1] = 0xEE;
         frame[TSDATA_BUFFER_SIZE + 2] = '\n';
         frame[TSDATA_BUFFER_SIZE + 3] = '\r';
 
         printf("LORA: Sending buffer - ");
         for (int i = 0; i < TSDATA_BUFFER_SIZE; ++i) {
-            printf("%02X ", ((unsigned char*)data)[i]);
+            printf("%02X ", data[i]);
         }
         printf("\n");
 

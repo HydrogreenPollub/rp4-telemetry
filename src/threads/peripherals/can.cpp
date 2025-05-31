@@ -33,6 +33,7 @@ void Can::operator()()
     // Read from CAN bus
     struct can_frame frame;
     while (true) {
+        // Read CAN bus
         int nbytes = ::read(this->socket, &frame, sizeof(frame));
         if (nbytes < 0) {
             throw std::runtime_error("CAN: Reading failed");
@@ -42,69 +43,10 @@ void Can::operator()()
 
             // TODO add more IDs once tested
             switch (frame.can_id) {
-            case CAN_ID_IS_EMERGENCY:
-                set_isEmergency(*(bool*)frame.data);
-                break;
 
-            case CAN_ID_IS_EMERGENCY_BUTTON_PRESSED:
-                set_isEmergencyButtonPressed(*(bool*)frame.data);
-                break;
-
-            case CAN_ID_IS_EMERGENCY_SWITCH_TOGGLED:
-                set_isEmergencySwitchToggled(*(bool*)frame.data);
-                break;
-
-            case CAN_ID_IS_HYDROGEN_LEAKING:
-                set_isHydrogenLeaking(*(bool*)frame.data);
-                break;
-
-            case CAN_ID_IS_SC_RELAY_CLOSED:
-                set_isScRelayClosed(*(bool*)frame.data);
-                break;
-
-            case CAN_ID_IS_TIME_RESET_BUTTON_PRESSED:
-                set_isTimeResetButtonPressed(*(bool*)frame.data);
-                break;
-
-            case CAN_ID_IS_HALF_SPEED_BUTTON_PRESSED:
-                set_isHalfSpeedButtonPressed(*(bool*)frame.data);
-                break;
-
-            case CAN_ID_IS_GAS_BUTTON_PRESSED:
-                set_isGasButtonPressed(*(bool*)frame.data);
-                break;
-
-            case CAN_ID_FUEL_CELL_MODE:
-                set_fuelCellMode(*(enum TSData_FuelCellMode*)frame.data);
-                break;
-
-            case CAN_ID_FC_CURRENT:
-                set_fcCurrent(*(float*)frame.data);
-                break;
-
-            case CAN_ID_FC_SC_CURRENT:
-                set_fcScCurrent(*(float*)frame.data);
-                break;
-
-            case CAN_ID_SC_MOTOR_CURRENT:
-                set_scMotorCurrent(*(float*)frame.data);
-                break;
-
-            case CAN_ID_FC_VOLTAGE:
-                set_fcVoltage(*(float*)frame.data);
-                break;
-
-            case CAN_ID_SC_VOLTAGE:
-                set_scVoltage(*(float*)frame.data);
-                break;
-
-            case CAN_ID_HYDROGEN_SENSOR_VOLTAGE:
-                set_hydrogenSensorVoltage(*(float*)frame.data);
-                break;
-
-            case CAN_ID_FUEL_CELL_TEMPERATURE:
-                set_fuelCellTemperature(*(float*)frame.data);
-                break;
+            // case CAN_ID_FUEL_CELL_TEMPERATURE:
+            //     set_fuelCellTemperature(*(float*)frame.data);
+            //     break;
 
             default:
                 std::cout << "CAN: can_id " << frame.can_id
@@ -112,6 +54,9 @@ void Can::operator()()
                 break;
             }
         }
+
+        // Send to CAN bus
+        
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }

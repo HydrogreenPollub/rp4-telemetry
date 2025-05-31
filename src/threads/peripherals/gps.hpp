@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/data.h>
+#include <utils/data.hpp>
 #include <utils/minmea/minmea.h>
 
 #include <boost/asio.hpp>

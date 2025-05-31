@@ -3,7 +3,6 @@
 #include <threads/peripherals/gps.hpp>
 #include <threads/peripherals/lora.hpp>
 #include <threads/peripherals/rs485.hpp>
-#include <utils/data.h>
 
 #include <atomic>
 #include <csignal>

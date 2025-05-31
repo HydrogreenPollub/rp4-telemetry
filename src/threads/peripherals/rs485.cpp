@@ -40,7 +40,7 @@ void* rs485(void* arg)
     parser.onMasterStatus = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterStatus& status) {
         std::cout << "HMI: Master status @ " << msClockTickCount << "ms (" << cycleClockTickCount << " cycles)" << std::endl;
 
-        std::cout << "HMI: state = " << static_cast<MasterStatus::State>(status.state) << std::endl;
+        std::cout << "HMI: state = " << std::to_string(static_cast<MasterStatus::State>(status.state)) << std::endl;
         std::cout << "HMI: mainValveEnableOutput = " << status.mainValveEnableOutput << std::endl;
         std::cout << "HMI: motorControllerEnableOutput = " << status.motorControllerEnableOutput << std::endl;
         std::cout << "HMI: accelOutputVoltage = " << status.accelOutputVoltage << std::endl;
@@ -50,8 +50,8 @@ void* rs485(void* arg)
     parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values) {
         std::cout << "HMI: Protium measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
 
-        set_fcVoltage(values.FC_V);
-        set_fcCurrent(values.FC_A);
+        //set_fcVoltage(values.FC_V);
+        //set_fcCurrent(values.FC_A);
     };
 
     parser.onProtiumOperatingState = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry(&operatingStateLogEntries)[8]) {
