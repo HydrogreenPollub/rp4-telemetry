@@ -41,9 +41,8 @@ void* gps(void* arg)
             struct minmea_sentence_gga frame;
             if (minmea_parse_gga(&frame, line.c_str())) {
                 std::cout << "GPS: GGA frame received at time - " << frame.time.hours << ":" << frame.time.minutes << ":" << frame.time.seconds << std::endl;
-
-                // set_gpsLatitude(minmea_tocoord(&frame.latitude));
-                // set_gpsLongitude(minmea_tocoord(&frame.longitude));
+                set_gpsLatitude(minmea_tocoord(&frame.latitude));
+                set_gpsLongitude(minmea_tocoord(&frame.longitude));
                 // TODO add time
             }
             break;
@@ -52,8 +51,8 @@ void* gps(void* arg)
         case MINMEA_SENTENCE_GLL: {
             struct minmea_sentence_gll frame;
             if (minmea_parse_gll(&frame, line.c_str())) {
-                // set_gpsLatitude(minmea_tocoord(&frame.latitude));
-                // set_gpsLongitude(minmea_tocoord(&frame.longitude));
+                set_gpsLatitude(minmea_tocoord(&frame.latitude));
+                set_gpsLongitude(minmea_tocoord(&frame.longitude));
                 // TODO add time
             }
             break;
@@ -70,8 +69,8 @@ void* gps(void* arg)
         case MINMEA_SENTENCE_RMC: {
             struct minmea_sentence_rmc frame;
             if (minmea_parse_rmc(&frame, line.c_str())) {
-                // set_gpsLatitude(minmea_tocoord(&frame.latitude));
-                // set_gpsLongitude(minmea_tocoord(&frame.longitude));
+                set_gpsLatitude(minmea_tocoord(&frame.latitude));
+                set_gpsLongitude(minmea_tocoord(&frame.longitude));
                 // set_gpsSpeed(minmea_tofloat(&frame.speed) * 1.852); // Convert to km/h from knots
             }
             break;
@@ -80,7 +79,7 @@ void* gps(void* arg)
         case MINMEA_SENTENCE_VTG: {
             struct minmea_sentence_vtg frame;
             if (minmea_parse_vtg(&frame, line.c_str())) {
-                //set_gpsSpeed(minmea_tofloat(&frame.speed_kph));
+                set_gpsSpeed(minmea_tofloat(&frame.speed_kph));
             }
             break;
         }

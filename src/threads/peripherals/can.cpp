@@ -43,10 +43,17 @@ void Can::operator()()
 
             // TODO add more IDs once tested
             switch (frame.can_id) {
+            case CAN_ID_BUTTONS_STEERING_MASK:
+                set_buttonsSteeringWheelMask(*(uint8_t*)frame.data);
+                break;
 
-            // case CAN_ID_FUEL_CELL_TEMPERATURE:
-            //     set_fuelCellTemperature(*(float*)frame.data);
-            //     break;
+            case CAN_ID_LAP_NUMBER:
+                set_lapNumber(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_LAP_TIME:
+                set_lapTime(*(uint32_t*)frame.data);
+                break;
 
             default:
                 std::cout << "CAN: can_id " << frame.can_id
@@ -56,8 +63,24 @@ void Can::operator()()
         }
 
         // Send to CAN bus
-        
+        frame.can_id = CAN_ID_SENSOR_RPM;
+        frame.can_dlc = sizeof(float);
+        float sensorRpm = get_sensorRpm();
+        std::memcpy(frame.data, &sensorRpm, sizeof(float));
+        nbytes = ::write(this->socket, &frame, sizeof(frame));
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        frame.can_id = CAN_ID_MASTER_STATE;
+        frame.can_dlc = sizeof(uint16_t);
+        uint16_t masterState = get_masterState();
+        std::memcpy(frame.data, &masterState, sizeof(uint16_t));
+        nbytes = ::write(this->socket, &frame, sizeof(frame));
+
+        frame.can_id = CAN_ID_PROTIUM_STATE;
+        frame.can_id = CAN_ID_SENSOR_SPEED;
+        frame.can_id = CAN_ID_FC_OUTPUT_VOLTAGE;
+        frame.can_id = CAN_ID_SC_VOLTAGE;
+        frame.can_id = CAN_ID_MC_SUPPLY_VOLTAGE;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
