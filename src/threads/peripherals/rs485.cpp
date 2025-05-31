@@ -34,7 +34,24 @@ void* rs485(void* arg)
 
     parser.onMasterMeasurements = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterMeasurements& measurements) {
         std::cout << "HMI: Master measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)" << std::endl;
-        (void)measurements;
+
+        set_supercapacitorCurrent(measurements.supercapacitorCurrent);
+        set_accelPedalVoltage(measurements.accelPedalVoltage);
+        set_brakePedalVoltage(measurements.brakePedalVoltage);
+        set_accessoryBatteryCurrent(measurements.accessoryBatteryCurrent);
+        set_h2PressureFuelCell(measurements.hydrogenHighPressure);
+        set_h2LeakageSensorVoltage(measurements.hydrogenLeakageSensorVoltage);
+        set_fuelCellOutputCurrent(measurements.fuelCellOutputCurrent);
+        set_motorControllerSupplyCurrent(measurements.motorControllerSupplyCurrent);
+        set_accessoryBatteryVoltage(measurements.accessoryBatteryVoltage);
+
+        set_fuelCellOutputVoltage(measurements.fuelCellOutputVoltage);
+        set_supercapacitorVoltage(measurements.supercapacitorVoltage);
+        set_motorControllerSupplyVoltage(measurements.motorControllerSupplyVoltage);
+
+        set_buttonsMasterMask(measurements.din);
+        set_sensorRpm(measurements.rpm);
+        set_sensorSpeed(measurements.speed);
     };
 
     parser.onMasterStatus = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterStatus& status) {
@@ -45,20 +62,31 @@ void* rs485(void* arg)
         std::cout << "HMI: motorControllerEnableOutput = " << status.motorControllerEnableOutput << std::endl;
         std::cout << "HMI: accelOutputVoltage = " << status.accelOutputVoltage << std::endl;
         std::cout << "HMI: brakeOutputVoltage = " << status.brakeOutputVoltage << std::endl;
+
+        set_masterState(status.state);
+        set_mainValveEnableOutput(status.mainValveEnableOutput);
+        set_accelOutputVoltage(status.accelOutputVoltage);
+        set_brakeOutputVoltage(status.brakeOutputVoltage);
     };
 
     parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values) {
         std::cout << "HMI: Protium measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
 
-        (void)values;
-        //set_fcVoltage(values.FC_V);
-        //set_fcCurrent(values.FC_A);
+        set_fuelCellEnergyAccumulated(values.Energy);
+        set_temperatureFuelCellLocation1(values.FCT1);
+        set_temperatureFuelCellLocation2(values.FCT2);
+        set_fanDutyCycle(values.FAN);
+        set_blowerDutyCycle(values.BLW);
+        set_h2PressureHigh(values.H2P1);
+        set_h2PressureLow(values.H2P2);
     };
 
     parser.onProtiumOperatingState = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry(&operatingStateLogEntries)[8]) {
         std::cout << "HMI: Protium operating state @ " << msClockTickCount << "ms (" << cycleClockTickCount << " cycles)" << std::endl;
         std::cout << "HMI: Current opearting state: " << currentOperatingState << std::endl;
         std::cout << "HMI: Operating state history:" << std::endl;
+
+        set_protiumState(currentOperatingState);
 
         std::size_t i = 0;
         for (auto& entry : operatingStateLogEntries) {
