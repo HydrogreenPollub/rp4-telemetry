@@ -24,13 +24,13 @@ const uint8_t* read_data(void)
 }
 
 // Setters
-void set_time(uint32_t value)
+void set_time(uint64_t value)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
     global_message.getRoot<TSData>().setTime(value);
 }
 
-void set_timeBeforeTransmit(uint32_t value)
+void set_timeBeforeTransmit(uint64_t value)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
     global_message.getRoot<TSData>().setTimeBeforeTransmit(value);
@@ -247,13 +247,13 @@ void set_motorControllerEnableOutput(bool value)
 }
 
 // Getters
-uint32_t get_time(void)
+uint64_t get_time(void)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
     return global_message.getRoot<TSData>().getTime();
 }
 
-uint32_t get_timeBeforeTransmit(void)
+uint64_t get_timeBeforeTransmit(void)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
     return global_message.getRoot<TSData>().getTimeBeforeTransmit();

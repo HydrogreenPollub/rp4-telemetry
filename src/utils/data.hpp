@@ -18,8 +18,8 @@ void init_data(void);
 const uint8_t* read_data(void);
 
 // Setters
-void set_time(uint32_t value);
-void set_timeBeforeTransmit(uint32_t value);
+void set_time(uint64_t value);
+void set_timeBeforeTransmit(uint64_t value);
 
 void set_accessoryBatteryVoltage(float value);
 void set_accessoryBatteryCurrent(float value);
@@ -73,8 +73,8 @@ void set_mainValveEnableOutput(bool value);
 void set_motorControllerEnableOutput(bool value);
 
 // Getters
-uint32_t get_time(void);
-uint32_t get_timeBeforeTransmit(void);
+uint64_t get_time(void);
+uint64_t get_timeBeforeTransmit(void);
 
 float get_accessoryBatteryVoltage(void);
 float get_accessoryBatteryCurrent(void);
