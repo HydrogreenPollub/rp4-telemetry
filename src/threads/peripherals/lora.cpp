@@ -36,11 +36,11 @@ void* lora(void* arg)
         frame[TSDATA_BUFFER_SIZE + 2] = '\n';
         frame[TSDATA_BUFFER_SIZE + 3] = '\r';
 
-        // printf("LORA: Sending buffer - ");
-        // for (int i = 0; i < TSDATA_BUFFER_SIZE; ++i) {
-        //     printf("%02X ", data[i]);
-        // }
-        // printf("\n");
+        printf("LORA: Sending buffer - ");
+        for (int i = 0; i < TSDATA_BUFFER_SIZE; ++i) {
+            printf("%02X ", data[i]);
+        }
+        printf("\n");
 
         serial.write_some(asio::buffer(frame));
         std::this_thread::sleep_for(std::chrono::seconds(5));
