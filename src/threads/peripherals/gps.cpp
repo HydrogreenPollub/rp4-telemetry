@@ -19,7 +19,11 @@ void* gps(void* arg)
         return nullptr;
     }
 
+#ifdef CONFIG_GPS_9600
+    serial.set_option(asio::serial_port::baud_rate(9600));
+#elif CONFIG_GPS_115200
     serial.set_option(asio::serial_port::baud_rate(115200));
+#endif
     serial.set_option(asio::serial_port::character_size(8));
     serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
     serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
@@ -33,7 +37,6 @@ void* gps(void* arg)
         std::string line;
         std::getline(input, line);
 
-        // TODO add altitude and time to tsdata
         enum minmea_sentence_id sentence_id = minmea_sentence_id(line.c_str(), false);
         switch (sentence_id) {
         // Global Positioning System Fix Data
@@ -43,7 +46,7 @@ void* gps(void* arg)
                 std::cout << "GPS: GGA frame received at time - " << frame.time.hours << ":" << frame.time.minutes << ":" << frame.time.seconds << std::endl;
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
-                // TODO add time
+                set_gpsAltitude(minmea_tofloat(&frame.altitude));
             }
             break;
         }
@@ -53,7 +56,6 @@ void* gps(void* arg)
             if (minmea_parse_gll(&frame, line.c_str())) {
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
-                // TODO add time
             }
             break;
         }
@@ -71,7 +73,25 @@ void* gps(void* arg)
             if (minmea_parse_rmc(&frame, line.c_str())) {
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
-                // set_gpsSpeed(minmea_tofloat(&frame.speed) * 1.852); // Convert to km/h from knots
+                set_gpsSpeed(minmea_tofloat(&frame.speed) * 1.852); // Convert to km/h from knots
+
+                // Set time
+                struct tm t = {};
+                t.tm_year = frame.date.year + 100; // Years since 1900
+                t.tm_mon = frame.date.month - 1; // Months since January
+                t.tm_mday = frame.date.day;
+                t.tm_hour = frame.time.hours;
+                t.tm_min = frame.time.minutes;
+                t.tm_sec = frame.time.seconds;
+
+                time_t epoch = timegm(&t); // Convert to Unix time (UTC)
+                if (epoch != -1) {
+                    struct timeval tv;
+                    tv.tv_sec = epoch;
+                    tv.tv_usec = 0;
+
+                    settimeofday(&tv, nullptr);
+                }
             }
             break;
         }
@@ -80,6 +100,29 @@ void* gps(void* arg)
             struct minmea_sentence_vtg frame;
             if (minmea_parse_vtg(&frame, line.c_str())) {
                 set_gpsSpeed(minmea_tofloat(&frame.speed_kph));
+            }
+            break;
+        }
+        // Time and date
+        case MINMEA_SENTENCE_ZDA: {
+            struct minmea_sentence_zda frame;
+            if (minmea_parse_zda(&frame, line.c_str())) {
+                struct tm t = {};
+                t.tm_year = frame.date.year + 100; // Years since 1900
+                t.tm_mon = frame.date.month - 1; // Months since January
+                t.tm_mday = frame.date.day;
+                t.tm_hour = frame.time.hours;
+                t.tm_min = frame.time.minutes;
+                t.tm_sec = frame.time.seconds;
+
+                time_t epoch = timegm(&t); // Convert to Unix time (UTC)
+                if (epoch != -1) {
+                    struct timeval tv;
+                    tv.tv_sec = epoch;
+                    tv.tv_usec = 0;
+
+                    settimeofday(&tv, nullptr);
+                }
             }
             break;
         }

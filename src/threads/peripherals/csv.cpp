@@ -7,7 +7,8 @@ void* csv(void* arg)
 {
     (void)arg;
 
-    std::ofstream output(CSV_FILE);
+    const bool file_exists = std::filesystem::exists(CSV_FILE);
+    std::ofstream output(CSV_FILE, std::ios::app);
 
     if (!output.is_open()) {
         std::cout << "CSV: Unable to open csv file - " << CSV_FILE << std::endl;
@@ -15,48 +16,58 @@ void* csv(void* arg)
     }
 
     // TODO come up with a cleaner way of doing this
-    output << "isEmergency,isEmergencyButtonPressed,isEmergencySwitchToggled,"
-           << "isHydrogenLeaking,isScRelayClosed,isTimeResetButtonPressed,"
-           << "isHalfSpeedButtonPressed,isGasButtonPressed,fuelCellMode,"
-           << "fcCurrent,fcScCurrent,scMotorCurrent,fcVoltage,scVoltage,"
-           << "hydrogenSensorVoltage,fuelCellTemperature,fanRpm,vehicleSpeed,"
-           << "motorPwm,hydrogenPressure,gpsLatitude,gpsLongitude,gpsAltitude,"
-           << "gpsSpeed,motorSpeed,motorCurrent,fcCurrentRaw,fcVoltageRaw,"
-           << "mcCurrent,lapNumber" << std::endl;
+    if (!file_exists) {
+        output << "time,timeBeforeTransmit,accessoryBatteryVoltage,accessoryBatteryCurrent,"
+               << "fuelCellOutputVoltage,fuelCellOutputCurrent,supercapacitorVoltage,supercapacitorCurrent,"
+               << "motorControllerSupplyVoltage,motorControllerSupplyCurrent,fuelCellEnergyAccumulated,"
+               << "h2PressureLow,h2PressureFuelCell,h2PressureHigh,h2LeakageSensorVoltage,"
+               << "fanDutyCycle,blowerDutyCycle,temperatureFuelCellLocation1,temperatureFuelCellLocation2,"
+               << "accelPedalVoltage,brakePedalVoltage,accelOutputVoltage,brakeOutputVoltage,"
+               << "buttonsMasterMask,buttonsSteeringWheelMask,sensorRpm,sensorSpeed,lapNumber,lapTime,"
+               << "gpsAltitude,gpsLatitude,gpsLongitude,gpsSpeed,"
+               << "masterState,protiumState,mainValveEnableOutput,motorControllerEnableOutput"
+               << std::endl;
+    }
 
     while (true) {
-        // TODO check if this is thread safe, or if we should create getters
-        // output << telemetry_data.isEmergency << ","
-        //        << telemetry_data.isEmergencyButtonPressed << ","
-        //        << telemetry_data.isEmergencySwitchToggled << ","
-        //        << telemetry_data.isHydrogenLeaking << ","
-        //        << telemetry_data.isScRelayClosed << ","
-        //        << telemetry_data.isTimeResetButtonPressed << ","
-        //        << telemetry_data.isHalfSpeedButtonPressed << ","
-        //        << telemetry_data.isGasButtonPressed << ","
-        //        << static_cast<int>(telemetry_data.fuelCellMode) << ","
-        //        << std::fixed << std::setprecision(2) << telemetry_data.fcCurrent << ","
-        //        << telemetry_data.fcScCurrent << ","
-        //        << telemetry_data.scMotorCurrent << ","
-        //        << telemetry_data.fcVoltage << ","
-        //        << telemetry_data.scVoltage << ","
-        //        << telemetry_data.hydrogenSensorVoltage << ","
-        //        << telemetry_data.fuelCellTemperature << ","
-        //        << telemetry_data.fanRpm << ","
-        //        << telemetry_data.vehicleSpeed << ","
-        //        << telemetry_data.motorPwm << ","
-        //        << telemetry_data.hydrogenPressure << ","
-        //        << telemetry_data.gpsLatitude << ","
-        //        << telemetry_data.gpsLongitude << ","
-        //        << telemetry_data.gpsAltitude << ","
-        //        << telemetry_data.gpsSpeed << ","
-        //        << telemetry_data.motorSpeed << ","
-        //        << telemetry_data.motorCurrent << ","
-        //        << telemetry_data.fcCurrentRaw << ","
-        //        << telemetry_data.fcVoltageRaw << ","
-        //        << telemetry_data.mcCurrent << ","
-        //        << static_cast<int>(telemetry_data.lapNumber)
-        //        << std::endl;
+        output << get_time() << ","
+               << get_timeBeforeTransmit() << ","
+               << get_accessoryBatteryVoltage() << ","
+               << get_accessoryBatteryCurrent() << ","
+               << get_fuelCellOutputVoltage() << ","
+               << get_fuelCellOutputCurrent() << ","
+               << get_supercapacitorVoltage() << ","
+               << get_supercapacitorCurrent() << ","
+               << get_motorControllerSupplyVoltage() << ","
+               << get_motorControllerSupplyCurrent() << ","
+               << get_fuelCellEnergyAccumulated() << ","
+               << get_h2PressureLow() << ","
+               << get_h2PressureFuelCell() << ","
+               << get_h2PressureHigh() << ","
+               << get_h2LeakageSensorVoltage() << ","
+               << get_fanDutyCycle() << ","
+               << get_blowerDutyCycle() << ","
+               << get_temperatureFuelCellLocation1() << ","
+               << get_temperatureFuelCellLocation2() << ","
+               << get_accelPedalVoltage() << ","
+               << get_brakePedalVoltage() << ","
+               << get_accelOutputVoltage() << ","
+               << get_brakeOutputVoltage() << ","
+               << static_cast<int>(get_buttonsMasterMask()) << ","
+               << static_cast<int>(get_buttonsSteeringWheelMask()) << ","
+               << get_sensorRpm() << ","
+               << get_sensorSpeed() << ","
+               << static_cast<int>(get_lapNumber()) << ","
+               << get_lapTime() << ","
+               << get_gpsAltitude() << ","
+               << get_gpsLatitude() << ","
+               << get_gpsLongitude() << ","
+               << get_gpsSpeed() << ","
+               << static_cast<int>(get_masterState()) << ","
+               << static_cast<int>(get_protiumState()) << ","
+               << (get_mainValveEnableOutput() ? "true" : "false") << ","
+               << (get_motorControllerEnableOutput() ? "true" : "false")
+               << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

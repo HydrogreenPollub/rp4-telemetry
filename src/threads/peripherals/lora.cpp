@@ -22,6 +22,10 @@ void* lora(void* arg)
     std::vector<uint8_t> frame(FRAME_SIZE);
 
     while (true) {
+        auto now = std::chrono::system_clock::now();
+        auto timestamp = std::chrono::system_clock::to_time_t(now);
+        set_time(static_cast<uint64_t>(timestamp));
+
         const uint8_t* data = read_data();
 
         // Frame structure: [0xFF][data][0xEE]
@@ -31,11 +35,11 @@ void* lora(void* arg)
         frame[TSDATA_BUFFER_SIZE + 2] = '\n';
         frame[TSDATA_BUFFER_SIZE + 3] = '\r';
 
-        printf("LORA: Sending buffer - ");
-        for (int i = 0; i < TSDATA_BUFFER_SIZE; ++i) {
-            printf("%02X ", data[i]);
-        }
-        printf("\n");
+        // printf("LORA: Sending buffer - ");
+        // for (int i = 0; i < TSDATA_BUFFER_SIZE; ++i) {
+        //     printf("%02X ", data[i]);
+        // }
+        // printf("\n");
 
         serial.write_some(asio::buffer(frame));
         std::this_thread::sleep_for(std::chrono::seconds(5));
