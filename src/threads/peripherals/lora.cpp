@@ -25,6 +25,7 @@ void* lora(void* arg)
         auto now = std::chrono::system_clock::now();
         auto timestamp = std::chrono::system_clock::to_time_t(now);
         set_time(static_cast<uint64_t>(timestamp));
+        set_timeBeforeTransmit(static_cast<uint64_t>(timestamp));
 
         const uint8_t* data = read_data();
 

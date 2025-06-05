@@ -30,7 +30,10 @@ void* csv(void* arg)
     }
 
     while (true) {
-        output << get_time() << ","
+        auto now = std::chrono::system_clock::now();
+        auto timestamp = std::chrono::system_clock::to_time_t(now);
+
+        output << static_cast<int>(timestamp) << ","
                << get_timeBeforeTransmit() << ","
                << get_accessoryBatteryVoltage() << ","
                << get_accessoryBatteryCurrent() << ","

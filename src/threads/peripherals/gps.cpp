@@ -21,8 +21,10 @@ void* gps(void* arg)
 
 #ifdef CONFIG_GPS_9600
     serial.set_option(asio::serial_port::baud_rate(9600));
-#elif CONFIG_GPS_115200
+#elif defined(CONFIG_GPS_115200)
     serial.set_option(asio::serial_port::baud_rate(115200));
+#else
+#error "Select either CONFIG_GPS_9600 or CONFIG_GPS_115200"
 #endif
     serial.set_option(asio::serial_port::character_size(8));
     serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));

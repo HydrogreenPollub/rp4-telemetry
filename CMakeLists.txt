@@ -3,8 +3,12 @@ project(telemetry VERSION 1.0.0)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if(NOT DEFINED CONFIG_GPS_115200 AND NOT DEFINED CONFIG_GPS_9600)
-    set(CONFIG_GPS_115200 1)
+if(CONFIG_GPS_115200)
+    add_compile_definitions(CONFIG_GPS_115200)
+elseif(CONFIG_GPS_9600)
+    add_compile_definitions(CONFIG_GPS_9600)
+else()
+    add_compile_definitions(CONFIG_GPS_115200)
 endif()
 
 add_compile_options(-Wall -Wextra -pedantic -Werror -O2)
