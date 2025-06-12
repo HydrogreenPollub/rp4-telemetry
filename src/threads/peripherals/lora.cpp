@@ -9,8 +9,6 @@ void* lora(void* arg)
 {
     (void)arg;
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-
     asio::io_context io;
     asio::serial_port serial(io);
 
@@ -20,6 +18,18 @@ void* lora(void* arg)
     serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
     serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
     serial.set_option(asio::serial_port::flow_control(asio::serial_port::flow_control::none));
+
+    while (true) {
+        boost::system::error_code ec;
+        serial.open(LORA_DEVICE, ec);
+        if (!ec) {
+            std::cout << "LORA: Serial port opened successfully.\n";
+            break;
+        } else {
+            std::cerr << "LORA: Failed to open serial port: " << ec.message() << ". Retrying...\n";
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
 
     std::vector<uint8_t> frame(FRAME_SIZE);
 

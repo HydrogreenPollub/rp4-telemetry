@@ -5,6 +5,8 @@
 #include <boost/asio.hpp>
 
 #include <chrono>
+#include <filesystem>
+#include <iostream>
 #include <stdint.h>
 #include <thread>
 #include <unistd.h>
