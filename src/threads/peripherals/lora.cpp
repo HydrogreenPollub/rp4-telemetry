@@ -9,6 +9,8 @@ void* lora(void* arg)
 {
     (void)arg;
 
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
     asio::io_context io;
     asio::serial_port serial(io);
 
