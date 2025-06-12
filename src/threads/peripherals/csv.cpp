@@ -7,7 +7,7 @@ void* csv(void* arg)
 {
     (void)arg;
 
-    std::string logDir = std::string(std::getenv("HOME")) + "/logs";
+    std::string logDir = std::string("/home/root/logs");
     std::filesystem::create_directories(logDir);
 
     auto t = std::time(nullptr);
