@@ -58,7 +58,7 @@ void set_sensorRpm(float value);
 void set_sensorSpeed(float value);
 
 void set_lapNumber(uint8_t value);
-void set_lapTime(uint32_t value);
+void set_lapTime(uint64_t value);
 
 void set_gpsAltitude(float value);
 void set_gpsLatitude(float value);
@@ -113,7 +113,7 @@ float get_sensorRpm(void);
 float get_sensorSpeed(void);
 
 uint8_t get_lapNumber(void);
-uint32_t get_lapTime(void);
+uint64_t get_lapTime(void);
 
 float get_gpsAltitude(void);
 float get_gpsLatitude(void);

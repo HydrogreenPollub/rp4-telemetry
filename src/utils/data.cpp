@@ -191,7 +191,7 @@ void set_lapNumber(uint8_t value)
     global_message.getRoot<TSData>().setLapNumber(value);
 }
 
-void set_lapTime(uint32_t value)
+void set_lapTime(uint64_t value)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
     global_message.getRoot<TSData>().setLapTime(value);
@@ -415,7 +415,7 @@ uint8_t get_lapNumber(void)
     return global_message.getRoot<TSData>().getLapNumber();
 }
 
-uint32_t get_lapTime(void)
+uint64_t get_lapTime(void)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
     return global_message.getRoot<TSData>().getLapTime();
