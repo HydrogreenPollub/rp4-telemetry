@@ -7,27 +7,35 @@ void* csv(void* arg)
 {
     (void)arg;
 
-    const bool file_exists = std::filesystem::exists(CSV_FILE);
-    std::ofstream output(CSV_FILE, std::ios::app);
+    std::string logDir = std::string(std::getenv("HOME")) + "/logs";
+    std::filesystem::create_directories(logDir);
+
+    auto t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    std::ostringstream time;
+    time << std::put_time(&tm, "%Y%m%d_%H%M%S");
+
+    // Generate timestamped filename
+    std::string filename = logDir + "/" + time.str() + ".log";
+
+    std::ofstream output(filename, std::ios::app);
 
     if (!output.is_open()) {
-        std::cout << "CSV: Unable to open csv file - " << CSV_FILE << std::endl;
+        std::cout << "CSV: Unable to open csv file - " << filename << std::endl;
         return nullptr;
     }
 
     // TODO come up with a cleaner way of doing this
-    if (!file_exists) {
-        output << "time,timeBeforeTransmit,accessoryBatteryVoltage,accessoryBatteryCurrent,"
-               << "fuelCellOutputVoltage,fuelCellOutputCurrent,supercapacitorVoltage,supercapacitorCurrent,"
-               << "motorControllerSupplyVoltage,motorControllerSupplyCurrent,fuelCellEnergyAccumulated,"
-               << "h2PressureLow,h2PressureFuelCell,h2PressureHigh,h2LeakageSensorVoltage,"
-               << "fanDutyCycle,blowerDutyCycle,temperatureFuelCellLocation1,temperatureFuelCellLocation2,"
-               << "accelPedalVoltage,brakePedalVoltage,accelOutputVoltage,brakeOutputVoltage,"
-               << "buttonsMasterMask,buttonsSteeringWheelMask,sensorRpm,sensorSpeed,lapNumber,lapTime,"
-               << "gpsAltitude,gpsLatitude,gpsLongitude,gpsSpeed,"
-               << "masterState,protiumState,mainValveEnableOutput,motorControllerEnableOutput"
-               << std::endl;
-    }
+    output << "time,timeBeforeTransmit,accessoryBatteryVoltage,accessoryBatteryCurrent,"
+           << "fuelCellOutputVoltage,fuelCellOutputCurrent,supercapacitorVoltage,supercapacitorCurrent,"
+           << "motorControllerSupplyVoltage,motorControllerSupplyCurrent,fuelCellEnergyAccumulated,"
+           << "h2PressureLow,h2PressureFuelCell,h2PressureHigh,h2LeakageSensorVoltage,"
+           << "fanDutyCycle,blowerDutyCycle,temperatureFuelCellLocation1,temperatureFuelCellLocation2,"
+           << "accelPedalVoltage,brakePedalVoltage,accelOutputVoltage,brakeOutputVoltage,"
+           << "buttonsMasterMask,buttonsSteeringWheelMask,sensorRpm,sensorSpeed,lapNumber,lapTime,"
+           << "gpsAltitude,gpsLatitude,gpsLongitude,gpsSpeed,"
+           << "masterState,protiumState,mainValveEnableOutput,motorControllerEnableOutput"
+           << std::endl;
 
     while (true) {
         auto now = std::chrono::system_clock::now();
