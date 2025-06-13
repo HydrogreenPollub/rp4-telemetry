@@ -16,7 +16,7 @@ void* csv(void* arg)
     time << std::put_time(&tm, "%Y%m%d_%H%M%S");
 
     // Generate timestamped filename
-    std::string filename = logDir + "/" + time.str() + ".log";
+    std::string filename = logDir + "/" + time.str() + ".csv";
 
     std::ofstream output(filename, std::ios::app);
 
@@ -26,6 +26,7 @@ void* csv(void* arg)
     }
 
     // TODO come up with a cleaner way of doing this
+    output << std::fixed << std::setprecision(10);
     output << "time,timeBeforeTransmit,accessoryBatteryVoltage,accessoryBatteryCurrent,"
            << "fuelCellOutputVoltage,fuelCellOutputCurrent,supercapacitorVoltage,supercapacitorCurrent,"
            << "motorControllerSupplyVoltage,motorControllerSupplyCurrent,fuelCellEnergyAccumulated,"
@@ -80,7 +81,7 @@ void* csv(void* arg)
                << (get_motorControllerEnableOutput() ? "true" : "false")
                << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
     // TODO somehow exit loop to clean up resources
