@@ -75,11 +75,15 @@ void Can::operator()()
         std::memcpy(frame.data, &sensorRpm, sizeof(float));
         nbytes = ::write(this->socket, &frame, sizeof(frame));
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
         frame.can_id = CAN_ID_MASTER_STATE;
         frame.can_dlc = sizeof(uint16_t);
         uint16_t masterState = get_masterState();
         std::memcpy(frame.data, &masterState, sizeof(uint16_t));
         nbytes = ::write(this->socket, &frame, sizeof(frame));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         frame.can_id = CAN_ID_PROTIUM_STATE;
         frame.can_dlc = sizeof(uint16_t);
@@ -87,11 +91,15 @@ void Can::operator()()
         std::memcpy(frame.data, &protiumState, sizeof(uint16_t));
         nbytes = ::write(this->socket, &frame, sizeof(frame));
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
         frame.can_id = CAN_ID_SENSOR_SPEED;
         frame.can_dlc = sizeof(float);
         float sensorSpeed = get_sensorSpeed();
         std::memcpy(frame.data, &sensorSpeed, sizeof(float));
         nbytes = ::write(this->socket, &frame, sizeof(frame));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         frame.can_id = CAN_ID_FC_OUTPUT_VOLTAGE;
         frame.can_dlc = sizeof(float);
@@ -99,11 +107,15 @@ void Can::operator()()
         std::memcpy(frame.data, &fuelCellOutputVoltage, sizeof(float));
         nbytes = ::write(this->socket, &frame, sizeof(frame));
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
         frame.can_id = CAN_ID_SC_VOLTAGE;
         frame.can_dlc = sizeof(float);
         float supercapacitorVoltage = get_supercapacitorVoltage();
         std::memcpy(frame.data, &supercapacitorVoltage, sizeof(float));
         nbytes = ::write(this->socket, &frame, sizeof(frame));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         frame.can_id = CAN_ID_MC_SUPPLY_VOLTAGE;
         frame.can_dlc = sizeof(float);
@@ -111,6 +123,6 @@ void Can::operator()()
         std::memcpy(frame.data, &motorControllerSupplyVoltage, sizeof(float));
         nbytes = ::write(this->socket, &frame, sizeof(frame));
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
