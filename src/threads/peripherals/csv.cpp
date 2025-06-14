@@ -1,8 +1,5 @@
 #include <threads/peripherals/csv.hpp>
 
-// TODO come up with a better location
-#define CSV_FILE "/var/log/tsdata.csv"
-
 void* csv(void* arg)
 {
     (void)arg;
@@ -10,13 +7,13 @@ void* csv(void* arg)
     std::string logDir = std::string("/home/root/logs");
     std::filesystem::create_directories(logDir);
 
-    auto t = std::time(nullptr);
-    std::tm tm = *std::localtime(&t);
-    std::ostringstream time;
-    time << std::put_time(&tm, "%Y%m%d_%H%M%S");
-
-    // Generate timestamped filename
-    std::string filename = logDir + "/" + time.str() + ".csv";
+    // Find the next available numbered file: data_1.csv, data_2.csv, etc.
+    int fileIndex = 1;
+    std::string filename;
+    do {
+        filename = logDir + "/data_" + std::to_string(fileIndex) + ".csv";
+        fileIndex++;
+    } while (std::filesystem::exists(filename));
 
     std::ofstream output(filename, std::ios::app);
 
