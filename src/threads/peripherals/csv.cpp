@@ -78,7 +78,7 @@ void* csv(void* arg)
                << (get_motorControllerEnableOutput() ? "true" : "false")
                << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     // TODO somehow exit loop to clean up resources
