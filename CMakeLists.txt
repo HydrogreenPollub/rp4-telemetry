@@ -11,6 +11,10 @@ else()
     add_compile_definitions(CONFIG_GPS_115200)
 endif()
 
+# RTC configuration
+add_compile_definitions(USE_DEV_LIB)
+add_compile_definitions(DEV_I2C)
+
 add_compile_options(-Wall -Wextra -pedantic -Werror -O2)
 
 file(GLOB_RECURSE SOURCES "src/*.c" "src/**/*.c" "src/*.cpp" "src/**/*.cpp")
@@ -21,6 +25,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/threads
     ${CMAKE_SOURCE_DIR}/src/utils
+    ${CMAKE_SOURCE_DIR}/src/utils/rtc_watchdog
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
