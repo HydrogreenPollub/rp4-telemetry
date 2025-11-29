@@ -53,6 +53,107 @@ void* can(void* arg)
                 frame.can_id, frame.can_dlc);
 
             switch (frame.can_id) {
+#ifndef CONFIG_USE_MASTER
+            // Voltages and currents
+            case CAN_ID_ACC_BATTERY_VOLTAGE:
+                set_accessoryBatteryVoltage(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_ACC_BATTERY_CURRENT:
+                set_accessoryBatteryCurrent(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_FC_OUTPUT_VOLTAGE:
+                set_fuelCellOutputVoltage(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_FC_OUTPUT_CURRENT:
+                set_fuelCellOutputCurrent(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_SC_VOLTAGE:
+                set_supercapacitorVoltage(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_SC_CURRENT:
+                set_supercapacitorCurrent(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_FC_ENERGY_ACCUMULATED:
+                set_fuelCellEnergyAccumulated(*(uint8_t*)frame.data);
+                break;
+
+            // Hydrogen
+            case CAN_ID_H2_PRESSURE_LOW:
+                set_h2PressureLow(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_H2_PRESSURE_FUEL_CELL:
+                set_h2PressureFuelCell(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_H2_PRESSURE_HIGH:
+                set_h2PressureHigh(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_H2_LEAKAGE_SENSOR_VOLTAGE:
+                set_h2LeakageSensorVoltage(*(uint8_t*)frame.data);
+                break;
+
+            // Fans
+            case CAN_ID_FAN_DUTY_CYCLE:
+                set_fanDutyCycle(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_BLOWER_DUTY_CYCLE:
+                set_blowerDutyCycle(*(uint8_t*)frame.data);
+                break;
+
+            // Temperature sensors
+            case CAN_ID_TEMP_FC_LOC1:
+                set_temperatureFuelCellLocation1(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_TEMP_FC_LOC2:
+                set_temperatureFuelCellLocation2(*(uint8_t*)frame.data);
+                break;
+
+            // Pedals
+            case CAN_ID_ACCEL_PEDAL_VOLTAGE:
+                set_accelPedalVoltage(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_BRAKE_PEDAL_VOLTAGE:
+                set_brakePedalVoltage(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_ACCEL_OUTPUT_VOLTAGE:
+                set_accelOutputVoltage(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_BRAKE_OUTPUT_VOLTAGE:
+                set_brakeOutputVoltage(*(uint8_t*)frame.data);
+                break;
+
+            // RPM and speed
+            case CAN_ID_SENSOR_RPM:
+                set_sensorRpm(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_SENSOR_SPEED:
+                set_sensorSpeed(*(uint8_t*)frame.data);
+                break;
+
+            // Other
+            case CAN_ID_MAIN_VALVE_ENABLE_OUTPUT:
+                set_mainValveEnableOutput(*(uint8_t*)frame.data);
+                break;
+
+            case CAN_ID_MC_ENABLE_OUTPUT:
+                set_motorControllerEnableOutput(*(uint8_t*)frame.data);
+                break;
+
+#endif // CONFIG_USE_MASTER
             case CAN_ID_BUTTONS_STEERING_MASK:
                 set_buttonsSteeringWheelMask(*(uint8_t*)frame.data);
                 break;
@@ -72,6 +173,7 @@ void* can(void* arg)
             }
         }
 
+#ifdef CONFIG_USE_MASTER
         // Send to CAN bus
         frame.can_id = CAN_ID_SENSOR_RPM;
         frame.can_dlc = sizeof(float);
@@ -126,6 +228,7 @@ void* can(void* arg)
         float motorControllerSupplyVoltage = get_motorControllerSupplyVoltage();
         std::memcpy(frame.data, &motorControllerSupplyVoltage, sizeof(float));
         nbytes = ::write(can_socket, &frame, sizeof(frame));
+#endif // CONFIG_USE_MASTER
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }

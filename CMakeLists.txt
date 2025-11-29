@@ -11,6 +11,10 @@ else()
     add_compile_definitions(CONFIG_GPS_115200)
 endif()
 
+if(CONFIG_USE_MASTER)
+    add_compile_definitions(CONFIG_USE_MASTER)
+endif()
+
 # RTC configuration
 add_compile_definitions(USE_DEV_LIB)
 add_compile_definitions(DEV_I2C)
