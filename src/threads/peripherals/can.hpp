@@ -16,12 +16,4 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-class Can {
-private:
-    int socket;
-
-    void bind();
-
-public:
-    void operator()();
-};
+void* can(void* arg);

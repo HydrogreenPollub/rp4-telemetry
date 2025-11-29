@@ -26,20 +26,8 @@ int main()
     // Initialize capnp
     init_data();
 
-    // Initialize RTC
-    if (DEV_ModuleInit() == 1)
-        return 1;
-
-    DEV_I2C_Init(DS3231_Address);
-
-    // TODO maybe add temperature readout from DS3231
-    DS3231_SET_Hour_Mode(24);
-    DS3231_SET_Calendar(2137, 12, 31);
-    DS3231_SET_Day(7);
-    DS3231_SET_Time(21, 37, 00);
-
     // Split program into multiple threads
-    std::thread can_thread = std::thread(Can {});
+    std::thread can_thread = std::thread(can, nullptr);
     std::thread csv_thread = std::thread(csv, nullptr);
     std::thread gps_thread = std::thread(gps, nullptr);
     std::thread rs485_thread = std::thread(rs485, nullptr);

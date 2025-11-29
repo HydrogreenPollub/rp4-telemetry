@@ -1,9 +1,11 @@
 #include <threads/peripherals/can.hpp>
 
-void Can::bind()
+static int can_socket = 0;
+
+static void can_socket_bind()
 {
-    this->socket = ::socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    if (!this->socket) {
+    can_socket = ::socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (!can_socket) {
         throw std::runtime_error("CAN: Creating socket failed");
     }
 
@@ -11,39 +13,41 @@ void Can::bind()
     struct ifreq ifr;
 
     strcpy(ifr.ifr_name, "can0");
-    if (ioctl(this->socket, SIOCGIFINDEX, &ifr) < 0) {
+    if (ioctl(can_socket, SIOCGIFINDEX, &ifr) < 0) {
         throw std::runtime_error("CAN: Call to ioctl failed");
     }
 
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    if (::bind(this->socket, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+    if (::bind(can_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         throw std::runtime_error("CAN: Binding the socket failed");
     }
 
     // Set the socket to non-blocking mode
-    int flags = fcntl(this->socket, F_GETFL, 0);
+    int flags = fcntl(can_socket, F_GETFL, 0);
     if (flags == -1) {
         throw std::runtime_error("CAN: fcntl failed to get flags");
     }
-    if (fcntl(this->socket, F_SETFL, flags | O_NONBLOCK) == -1) {
+    if (fcntl(can_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
         throw std::runtime_error("CAN: fcntl failed to set socket non-blocking");
     }
 
     std::cout << "CAN: Binding the socket was successfull" << std::endl;
 }
 
-void Can::operator()()
+void* can(void* arg)
 {
+    (void)arg;
+
     // Initialize socket connection
-    this->bind();
+    can_socket_bind();
 
     // Read from CAN bus
     struct can_frame frame;
     while (true) {
         // Read CAN bus
-        int nbytes = ::read(this->socket, &frame, sizeof(frame));
+        int nbytes = ::read(can_socket, &frame, sizeof(frame));
         if (nbytes > 0) {
             printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n",
                 frame.can_id, frame.can_dlc);
@@ -73,7 +77,7 @@ void Can::operator()()
         frame.can_dlc = sizeof(float);
         float sensorRpm = get_sensorRpm();
         std::memcpy(frame.data, &sensorRpm, sizeof(float));
-        nbytes = ::write(this->socket, &frame, sizeof(frame));
+        nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -81,7 +85,7 @@ void Can::operator()()
         frame.can_dlc = sizeof(uint16_t);
         uint16_t masterState = get_masterState();
         std::memcpy(frame.data, &masterState, sizeof(uint16_t));
-        nbytes = ::write(this->socket, &frame, sizeof(frame));
+        nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -89,7 +93,7 @@ void Can::operator()()
         frame.can_dlc = sizeof(uint16_t);
         uint16_t protiumState = get_protiumState();
         std::memcpy(frame.data, &protiumState, sizeof(uint16_t));
-        nbytes = ::write(this->socket, &frame, sizeof(frame));
+        nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -97,7 +101,7 @@ void Can::operator()()
         frame.can_dlc = sizeof(float);
         float sensorSpeed = get_sensorSpeed();
         std::memcpy(frame.data, &sensorSpeed, sizeof(float));
-        nbytes = ::write(this->socket, &frame, sizeof(frame));
+        nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -105,7 +109,7 @@ void Can::operator()()
         frame.can_dlc = sizeof(float);
         float fuelCellOutputVoltage = get_fuelCellOutputVoltage();
         std::memcpy(frame.data, &fuelCellOutputVoltage, sizeof(float));
-        nbytes = ::write(this->socket, &frame, sizeof(frame));
+        nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -113,7 +117,7 @@ void Can::operator()()
         frame.can_dlc = sizeof(float);
         float supercapacitorVoltage = get_supercapacitorVoltage();
         std::memcpy(frame.data, &supercapacitorVoltage, sizeof(float));
-        nbytes = ::write(this->socket, &frame, sizeof(frame));
+        nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -121,7 +125,7 @@ void Can::operator()()
         frame.can_dlc = sizeof(float);
         float motorControllerSupplyVoltage = get_motorControllerSupplyVoltage();
         std::memcpy(frame.data, &motorControllerSupplyVoltage, sizeof(float));
-        nbytes = ::write(this->socket, &frame, sizeof(frame));
+        nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
