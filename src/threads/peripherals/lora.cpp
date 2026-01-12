@@ -5,6 +5,8 @@ constexpr size_t FRAME_SIZE = TSDATA_BUFFER_SIZE + 4;
 
 namespace asio = boost::asio;
 
+extern std::atomic<bool> running;
+
 void* lora(void* arg)
 {
     (void)arg;
@@ -33,7 +35,7 @@ void* lora(void* arg)
 
     std::vector<uint8_t> frame(FRAME_SIZE);
 
-    while (true) {
+    while (running.load(std::memory_order_relaxed)) {
         auto now = std::chrono::system_clock::now();
         auto timestamp = std::chrono::system_clock::to_time_t(now);
         set_time(static_cast<uint64_t>(timestamp));

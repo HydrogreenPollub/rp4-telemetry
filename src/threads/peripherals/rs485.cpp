@@ -8,6 +8,8 @@
 
 namespace asio = boost::asio;
 
+extern std::atomic<bool> running;
+
 void* rs485(void* arg)
 {
     (void)arg;
@@ -106,8 +108,7 @@ void* rs485(void* arg)
 
     std::byte buffer[1] = {};
 
-    // TODO maybe add some way to break out of the loop to free the resources...
-    while (true) {
+    while (running.load(std::memory_order_relaxed)) {
         std::size_t bytes_received = serial.read_some(asio::buffer(buffer));
 
         if (bytes_received != 1) {

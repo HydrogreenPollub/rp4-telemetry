@@ -1,5 +1,7 @@
 #include <threads/peripherals/can.hpp>
 
+extern std::atomic<bool> running;
+
 static int can_socket = 0;
 
 static void can_socket_bind()
@@ -45,7 +47,7 @@ void* can(void* arg)
 
     // Read from CAN bus
     struct can_frame frame;
-    while (true) {
+    while (running.load(std::memory_order_relaxed)) {
         // Read CAN bus
         int nbytes = ::read(can_socket, &frame, sizeof(frame));
         if (nbytes > 0) {

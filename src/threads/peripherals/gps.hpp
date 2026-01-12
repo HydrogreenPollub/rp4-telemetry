@@ -7,6 +7,7 @@
 #include <boost/system/error_code.hpp>
 
 #include <assert.h>
+#include <atomic>
 #include <ctime>
 #include <iostream>
 #include <stdint.h>

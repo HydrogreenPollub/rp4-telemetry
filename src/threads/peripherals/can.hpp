@@ -3,6 +3,7 @@
 #include <utils/can_ids/can_ids.h>
 #include <utils/data.hpp>
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <iostream>

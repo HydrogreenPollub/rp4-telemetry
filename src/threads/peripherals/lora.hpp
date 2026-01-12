@@ -4,6 +4,7 @@
 
 #include <boost/asio.hpp>
 
+#include <atomic>
 #include <chrono>
 #include <filesystem>
 #include <iostream>

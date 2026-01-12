@@ -12,13 +12,13 @@
 #include <iostream>
 #include <thread>
 
-static std::atomic<bool> running(true);
+std::atomic<bool> running(true);
 
 void sigaction_handler(int signum)
 {
     (void)signum;
     std::cout << "MAIN: Sigaction received - Closing program...\n";
-    running = false; // TODO do we need a more advanced handler?
+    running.store(false, std::memory_order_relaxed);
 }
 
 int main()
@@ -37,7 +37,7 @@ int main()
     sig.sa_handler = sigaction_handler;
     sigaction(SIGINT, &sig, NULL);
 
-    while (running) {
+    while (running.load(std::memory_order_relaxed)) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 

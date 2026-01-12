@@ -2,6 +2,7 @@
 
 #include <utils/data.hpp>
 
+#include <atomic>
 #include <chrono>
 #include <filesystem>
 #include <fstream>

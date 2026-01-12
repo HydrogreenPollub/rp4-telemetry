@@ -1,5 +1,7 @@
 #include <threads/peripherals/csv.hpp>
 
+extern std::atomic<bool> running;
+
 void* csv(void* arg)
 {
     (void)arg;
@@ -35,7 +37,7 @@ void* csv(void* arg)
            << "masterState,protiumState,mainValveEnableOutput,motorControllerEnableOutput"
            << std::endl;
 
-    while (true) {
+    while (running.load(std::memory_order_relaxed)) {
         auto now = std::chrono::system_clock::now();
         auto timestamp = std::chrono::system_clock::to_time_t(now);
 

@@ -5,6 +5,7 @@
 
 #include <boost/asio.hpp>
 
+#include <atomic>
 #include <chrono>
 #include <gpiod.hpp>
 #include <iostream>

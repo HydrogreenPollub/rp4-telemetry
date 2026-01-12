@@ -4,6 +4,8 @@
 
 namespace asio = boost::asio;
 
+extern std::atomic<bool> running;
+
 void* gps(void* arg)
 {
     (void)arg;
@@ -31,7 +33,7 @@ void* gps(void* arg)
     serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
     serial.set_option(asio::serial_port::flow_control(asio::serial_port::flow_control::none));
 
-    while (true) {
+    while (running.load(std::memory_order_relaxed)) {
         boost::asio::streambuf buf;
         boost::asio::read_until(serial, buf, "\r\n"); // NMEA sentences end with CRLF
 
