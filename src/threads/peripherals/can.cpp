@@ -54,7 +54,10 @@ void* can(void* arg)
             printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n",
                 frame.can_id, frame.can_dlc);
 
-            switch (frame.can_id) {
+            // Mask out EFF/RTR/ERR flags to get actual CAN ID
+            uint32_t can_id = frame.can_id & CAN_EFF_MASK;
+
+            switch (can_id) {
             case CANDEF_MCU_STATE_FRAME_ID: {
                 struct candef_mcu_state_t msg{};
                 candef_mcu_state_unpack(&msg, frame.data, frame.can_dlc);
@@ -145,8 +148,14 @@ void* can(void* arg)
                 break;
             }
 
+            case CANDEF_MCU_FAULTS_FRAME_ID:
+            case CANDEF_MCU_INPUTS_FRAME_ID:
+            case CANDEF_MCU_ANALOG_UNASSIGNED_FRAME_ID:
+                // TODO: Add handlers for these frames
+                break;
+
             default:
-                std::cout << "CAN: can_id 0x" << std::hex << frame.can_id
+                std::cout << "CAN: can_id 0x" << std::hex << can_id
                           << " is currently not supported" << std::dec << std::endl;
                 break;
             }
