@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/can_ids/can_ids.h>
+#include <utils/can-definition/candef.h>
 #include <utils/data.hpp>
 
 #include <atomic>

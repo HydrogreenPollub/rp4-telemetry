@@ -55,180 +55,162 @@ void* can(void* arg)
                 frame.can_id, frame.can_dlc);
 
             switch (frame.can_id) {
-#ifndef CONFIG_USE_MASTER
-            // Voltages and currents
-            case CAN_ID_ACC_BATTERY_VOLTAGE:
-                set_accessoryBatteryVoltage(*(uint8_t*)frame.data);
+            case CANDEF_MCU_STATE_FRAME_ID: {
+                struct candef_mcu_state_t msg{};
+                candef_mcu_state_unpack(&msg, frame.data, frame.can_dlc);
+                set_masterState(msg.status);
+                set_mainValveEnableOutput(msg.main_valve_enabled);
+                set_motorControllerEnableOutput(msg.motor_controller_enabled);
                 break;
+            }
 
-            case CAN_ID_ACC_BATTERY_CURRENT:
-                set_accessoryBatteryCurrent(*(uint8_t*)frame.data);
+            case CANDEF_MCU_ANALOG_PEDALS_FRAME_ID: {
+                struct candef_mcu_analog_pedals_t msg{};
+                candef_mcu_analog_pedals_unpack(&msg, frame.data, frame.can_dlc);
+                set_accelPedalVoltage(static_cast<float>(candef_mcu_analog_pedals_acceleration_pedal_voltage_decode(msg.acceleration_pedal_voltage)));
+                set_brakePedalVoltage(static_cast<float>(candef_mcu_analog_pedals_brake_pedal_voltage_decode(msg.brake_pedal_voltage)));
                 break;
+            }
 
-            case CAN_ID_FC_OUTPUT_VOLTAGE:
-                set_fuelCellOutputVoltage(*(uint8_t*)frame.data);
+            case CANDEF_MCU_ANALOG_FUEL_CELL_FRAME_ID: {
+                struct candef_mcu_analog_fuel_cell_t msg{};
+                candef_mcu_analog_fuel_cell_unpack(&msg, frame.data, frame.can_dlc);
+                set_fuelCellOutputCurrent(static_cast<float>(candef_mcu_analog_fuel_cell_fuel_cell_output_current_decode(msg.fuel_cell_output_current)));
+                set_fuelCellOutputVoltage(static_cast<float>(candef_mcu_analog_fuel_cell_fuel_cell_output_voltage_decode(msg.fuel_cell_output_voltage)));
+                set_h2PressureHigh(static_cast<float>(candef_mcu_analog_fuel_cell_hydrogen_high_pressure_decode(msg.hydrogen_high_pressure)));
+                set_h2LeakageSensorVoltage(static_cast<float>(candef_mcu_analog_fuel_cell_hydrogen_leakage_sensor_voltage_decode(msg.hydrogen_leakage_sensor_voltage)));
                 break;
+            }
 
-            case CAN_ID_FC_OUTPUT_CURRENT:
-                set_fuelCellOutputCurrent(*(uint8_t*)frame.data);
+            case CANDEF_MCU_ANALOG_POWERTRAIN_FRAME_ID: {
+                struct candef_mcu_analog_powertrain_t msg{};
+                candef_mcu_analog_powertrain_unpack(&msg, frame.data, frame.can_dlc);
+                set_supercapacitorVoltage(static_cast<float>(candef_mcu_analog_powertrain_supercapacitor_voltage_decode(msg.supercapacitor_voltage)));
+                set_supercapacitorCurrent(static_cast<float>(candef_mcu_analog_powertrain_supercapacitor_current_decode(msg.supercapacitor_current)));
+                set_motorControllerSupplyCurrent(static_cast<float>(candef_mcu_analog_powertrain_motor_controller_supply_current_decode(msg.motor_controller_supply_current)));
+                set_motorControllerSupplyVoltage(static_cast<float>(candef_mcu_analog_powertrain_motor_controller_supply_voltage_decode(msg.motor_controller_supply_voltage)));
                 break;
+            }
 
-            case CAN_ID_SC_VOLTAGE:
-                set_supercapacitorVoltage(*(uint8_t*)frame.data);
+            case CANDEF_MCU_ANALOG_ACCESSORY_FRAME_ID: {
+                struct candef_mcu_analog_accessory_t msg{};
+                candef_mcu_analog_accessory_unpack(&msg, frame.data, frame.can_dlc);
+                set_accessoryBatteryVoltage(static_cast<float>(candef_mcu_analog_accessory_accessory_battery_voltage_decode(msg.accessory_battery_voltage)));
+                set_accessoryBatteryCurrent(static_cast<float>(candef_mcu_analog_accessory_accessory_battery_current_decode(msg.accessory_battery_current)));
                 break;
+            }
 
-            case CAN_ID_SC_CURRENT:
-                set_supercapacitorCurrent(*(uint8_t*)frame.data);
+            case CANDEF_MCU_ANALOG_DRIVE_FRAME_ID: {
+                struct candef_mcu_analog_drive_t msg{};
+                candef_mcu_analog_drive_unpack(&msg, frame.data, frame.can_dlc);
+                set_sensorRpm(static_cast<float>(candef_mcu_analog_drive_rpm_decode(msg.rpm)));
+                set_sensorSpeed(static_cast<float>(candef_mcu_analog_drive_speed_decode(msg.speed)));
                 break;
+            }
 
-            case CAN_ID_FC_ENERGY_ACCUMULATED:
-                set_fuelCellEnergyAccumulated(*(uint8_t*)frame.data);
+            case CANDEF_PROTIUM_POWER_FRAME_ID: {
+                struct candef_protium_power_t msg{};
+                candef_protium_power_unpack(&msg, frame.data, frame.can_dlc);
+                set_fuelCellEnergyAccumulated(static_cast<float>(candef_protium_power_energy_decode(msg.energy)));
                 break;
+            }
 
-            // Hydrogen
-            case CAN_ID_H2_PRESSURE_LOW:
-                set_h2PressureLow(*(uint8_t*)frame.data);
+            case CANDEF_PROTIUM_THERMAL_FRAME_ID: {
+                struct candef_protium_thermal_t msg{};
+                candef_protium_thermal_unpack(&msg, frame.data, frame.can_dlc);
+                set_temperatureFuelCellLocation1(static_cast<float>(candef_protium_thermal_fct1_decode(msg.fct1)));
+                set_temperatureFuelCellLocation2(static_cast<float>(candef_protium_thermal_fct2_decode(msg.fct2)));
+                set_fanDutyCycle(static_cast<float>(candef_protium_thermal_fan_decode(msg.fan)));
+                set_blowerDutyCycle(static_cast<float>(candef_protium_thermal_blw_decode(msg.blw)));
                 break;
+            }
 
-            case CAN_ID_H2_PRESSURE_FUEL_CELL:
-                set_h2PressureFuelCell(*(uint8_t*)frame.data);
+            case CANDEF_PROTIUM_HYDROGEN_FRAME_ID: {
+                struct candef_protium_hydrogen_t msg{};
+                candef_protium_hydrogen_unpack(&msg, frame.data, frame.can_dlc);
+                set_h2PressureLow(static_cast<float>(candef_protium_hydrogen_h2_p2_decode(msg.h2_p2)));
+                set_h2PressureFuelCell(static_cast<float>(candef_protium_hydrogen_tank_p_decode(msg.tank_p)));
                 break;
+            }
 
-            case CAN_ID_H2_PRESSURE_HIGH:
-                set_h2PressureHigh(*(uint8_t*)frame.data);
+            case CANDEF_PROTIUM_STATE_FRAME_ID: {
+                struct candef_protium_state_t msg{};
+                candef_protium_state_unpack(&msg, frame.data, frame.can_dlc);
+                set_protiumState(msg.operating_state);
                 break;
+            }
 
-            case CAN_ID_H2_LEAKAGE_SENSOR_VOLTAGE:
-                set_h2LeakageSensorVoltage(*(uint8_t*)frame.data);
+            case CANDEF_SWU_LIGHTS_FRAME_ID: {
+                set_buttonsSteeringWheelMask(frame.data[0]);
                 break;
-
-            // Fans
-            case CAN_ID_FAN_DUTY_CYCLE:
-                set_fanDutyCycle(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_BLOWER_DUTY_CYCLE:
-                set_blowerDutyCycle(*(uint8_t*)frame.data);
-                break;
-
-            // Temperature sensors
-            case CAN_ID_TEMP_FC_LOC1:
-                set_temperatureFuelCellLocation1(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_TEMP_FC_LOC2:
-                set_temperatureFuelCellLocation2(*(uint8_t*)frame.data);
-                break;
-
-            // Pedals
-            case CAN_ID_ACCEL_PEDAL_VOLTAGE:
-                set_accelPedalVoltage(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_BRAKE_PEDAL_VOLTAGE:
-                set_brakePedalVoltage(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_ACCEL_OUTPUT_VOLTAGE:
-                set_accelOutputVoltage(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_BRAKE_OUTPUT_VOLTAGE:
-                set_brakeOutputVoltage(*(uint8_t*)frame.data);
-                break;
-
-            // RPM and speed
-            case CAN_ID_SENSOR_RPM:
-                set_sensorRpm(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_SENSOR_SPEED:
-                set_sensorSpeed(*(uint8_t*)frame.data);
-                break;
-
-            // Other
-            case CAN_ID_MAIN_VALVE_ENABLE_OUTPUT:
-                set_mainValveEnableOutput(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_MC_ENABLE_OUTPUT:
-                set_motorControllerEnableOutput(*(uint8_t*)frame.data);
-                break;
-
-#endif // CONFIG_USE_MASTER
-            case CAN_ID_BUTTONS_STEERING_MASK:
-                set_buttonsSteeringWheelMask(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_LAP_NUMBER:
-                set_lapNumber(*(uint8_t*)frame.data);
-                break;
-
-            case CAN_ID_LAP_TIME:
-                set_lapTime(*(uint32_t*)frame.data);
-                break;
+            }
 
             default:
-                std::cout << "CAN: can_id " << frame.can_id
-                          << " is currently not supported" << std::endl;
+                std::cout << "CAN: can_id 0x" << std::hex << frame.can_id
+                          << " is currently not supported" << std::dec << std::endl;
                 break;
             }
         }
 
 #ifdef CONFIG_USE_MASTER
         // Send to CAN bus
-        frame.can_id = CAN_ID_SENSOR_RPM;
-        frame.can_dlc = sizeof(float);
-        float sensorRpm = get_sensorRpm();
-        std::memcpy(frame.data, &sensorRpm, sizeof(float));
+        uint8_t buf[8] = { };
+
+        struct candef_mcu_analog_drive_t drive_msg;
+        candef_mcu_analog_drive_init(&drive_msg);
+        drive_msg.rpm = candef_mcu_analog_drive_rpm_encode(get_sensorRpm());
+        drive_msg.speed = candef_mcu_analog_drive_speed_encode(get_sensorSpeed());
+        candef_mcu_analog_drive_pack(buf, &drive_msg, sizeof(buf));
+        frame.can_id = CANDEF_MCU_ANALOG_DRIVE_FRAME_ID;
+        frame.can_dlc = CANDEF_MCU_ANALOG_DRIVE_LENGTH;
+        std::memcpy(frame.data, buf, CANDEF_MCU_ANALOG_DRIVE_LENGTH);
         nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        frame.can_id = CAN_ID_MASTER_STATE;
-        frame.can_dlc = sizeof(uint16_t);
-        uint16_t masterState = get_masterState();
-        std::memcpy(frame.data, &masterState, sizeof(uint16_t));
+        struct candef_mcu_state_t state_msg;
+        candef_mcu_state_init(&state_msg);
+        state_msg.status = candef_mcu_state_status_encode(get_masterState());
+        state_msg.motor_controller_enabled = candef_mcu_state_motor_controller_enabled_encode(get_motorControllerEnableOutput());
+        state_msg.main_valve_enabled = candef_mcu_state_main_valve_enabled_encode(get_mainValveEnableOutput());
+        candef_mcu_state_pack(buf, &state_msg, sizeof(buf));
+        frame.can_id = CANDEF_MCU_STATE_FRAME_ID;
+        frame.can_dlc = CANDEF_MCU_STATE_LENGTH;
+        std::memcpy(frame.data, buf, CANDEF_MCU_STATE_LENGTH);
         nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        frame.can_id = CAN_ID_PROTIUM_STATE;
-        frame.can_dlc = sizeof(uint16_t);
-        uint16_t protiumState = get_protiumState();
-        std::memcpy(frame.data, &protiumState, sizeof(uint16_t));
+        struct candef_protium_state_t protium_state_msg;
+        candef_protium_state_init(&protium_state_msg);
+        protium_state_msg.operating_state = candef_protium_state_operating_state_encode(get_protiumState());
+        candef_protium_state_pack(buf, &protium_state_msg, sizeof(buf));
+        frame.can_id = CANDEF_PROTIUM_STATE_FRAME_ID;
+        frame.can_dlc = CANDEF_PROTIUM_STATE_LENGTH;
+        std::memcpy(frame.data, buf, CANDEF_PROTIUM_STATE_LENGTH);
         nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        frame.can_id = CAN_ID_SENSOR_SPEED;
-        frame.can_dlc = sizeof(float);
-        float sensorSpeed = get_sensorSpeed();
-        std::memcpy(frame.data, &sensorSpeed, sizeof(float));
+        struct candef_mcu_analog_fuel_cell_t fc_msg;
+        candef_mcu_analog_fuel_cell_init(&fc_msg);
+        fc_msg.fuel_cell_output_voltage = candef_mcu_analog_fuel_cell_fuel_cell_output_voltage_encode(get_fuelCellOutputVoltage());
+        candef_mcu_analog_fuel_cell_pack(buf, &fc_msg, sizeof(buf));
+        frame.can_id = CANDEF_MCU_ANALOG_FUEL_CELL_FRAME_ID;
+        frame.can_dlc = CANDEF_MCU_ANALOG_FUEL_CELL_LENGTH;
+        std::memcpy(frame.data, buf, CANDEF_MCU_ANALOG_FUEL_CELL_LENGTH);
         nbytes = ::write(can_socket, &frame, sizeof(frame));
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        frame.can_id = CAN_ID_FC_OUTPUT_VOLTAGE;
-        frame.can_dlc = sizeof(float);
-        float fuelCellOutputVoltage = get_fuelCellOutputVoltage();
-        std::memcpy(frame.data, &fuelCellOutputVoltage, sizeof(float));
-        nbytes = ::write(can_socket, &frame, sizeof(frame));
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-        frame.can_id = CAN_ID_SC_VOLTAGE;
-        frame.can_dlc = sizeof(float);
-        float supercapacitorVoltage = get_supercapacitorVoltage();
-        std::memcpy(frame.data, &supercapacitorVoltage, sizeof(float));
-        nbytes = ::write(can_socket, &frame, sizeof(frame));
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-        frame.can_id = CAN_ID_MC_SUPPLY_VOLTAGE;
-        frame.can_dlc = sizeof(float);
-        float motorControllerSupplyVoltage = get_motorControllerSupplyVoltage();
-        std::memcpy(frame.data, &motorControllerSupplyVoltage, sizeof(float));
+        struct candef_mcu_analog_powertrain_t pt_msg;
+        candef_mcu_analog_powertrain_init(&pt_msg);
+        pt_msg.supercapacitor_voltage = candef_mcu_analog_powertrain_supercapacitor_voltage_encode(get_supercapacitorVoltage());
+        pt_msg.motor_controller_supply_voltage = candef_mcu_analog_powertrain_motor_controller_supply_voltage_encode(get_motorControllerSupplyVoltage());
+        candef_mcu_analog_powertrain_pack(buf, &pt_msg, sizeof(buf));
+        frame.can_id = CANDEF_MCU_ANALOG_POWERTRAIN_FRAME_ID;
+        frame.can_dlc = CANDEF_MCU_ANALOG_POWERTRAIN_LENGTH;
+        std::memcpy(frame.data, buf, CANDEF_MCU_ANALOG_POWERTRAIN_LENGTH);
         nbytes = ::write(can_socket, &frame, sizeof(frame));
 #endif // CONFIG_USE_MASTER
 
