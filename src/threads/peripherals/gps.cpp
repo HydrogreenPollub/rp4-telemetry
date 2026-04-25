@@ -138,4 +138,6 @@ void* gps(void* arg)
             break;
         }
     }
+
+    return nullptr;
 }

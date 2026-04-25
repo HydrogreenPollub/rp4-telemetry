@@ -116,4 +116,6 @@ void* rs485(void* arg)
 
         parser.processOctet((uint8_t)buffer[0]);
     }
+
+    return nullptr;
 }
