@@ -1,4 +1,5 @@
 #include <threads/peripherals/lora.hpp>
+#include <utils/log.hpp>
 
 #define LORA_DEVICE "/dev/ttyS0"
 constexpr size_t FRAME_SIZE = TSDATA_BUFFER_SIZE + 4;
@@ -50,11 +51,7 @@ void* lora(void* arg)
         frame[TSDATA_BUFFER_SIZE + 2] = '\n';
         frame[TSDATA_BUFFER_SIZE + 3] = '\r';
 
-        printf("LORA: Sending buffer - ");
-        for (int i = 0; i < TSDATA_BUFFER_SIZE; ++i) {
-            printf("%02X ", data[i]);
-        }
-        printf("\n");
+        log("LoRa", "Sending buffer - " + hex_bytes(data, TSDATA_BUFFER_SIZE));
 
         serial.write_some(asio::buffer(frame));
         std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -1,6 +1,37 @@
 #include <threads/peripherals/can.hpp>
+#include <utils/log.hpp>
+
+#include <format>
 
 extern std::atomic<bool> running;
+
+static const char* can_frame_name(uint32_t id)
+{
+    switch (id) {
+    case CANDEF_CCU_STATUS_FRAME_ID:            return CANDEF_CCU_STATUS_NAME;
+    case CANDEF_MCU_TIME_SYNC_FRAME_ID:         return CANDEF_MCU_TIME_SYNC_NAME;
+    case CANDEF_MCU_STATE_FRAME_ID:             return CANDEF_MCU_STATE_NAME;
+    case CANDEF_MCU_INPUTS_FRAME_ID:            return CANDEF_MCU_INPUTS_NAME;
+    case CANDEF_MCU_FAULTS_FRAME_ID:            return CANDEF_MCU_FAULTS_NAME;
+    case CANDEF_MCU_ANALOG_PEDALS_FRAME_ID:     return CANDEF_MCU_ANALOG_PEDALS_NAME;
+    case CANDEF_MCU_ANALOG_FUEL_CELL_FRAME_ID:  return CANDEF_MCU_ANALOG_FUEL_CELL_NAME;
+    case CANDEF_MCU_ANALOG_POWERTRAIN_FRAME_ID: return CANDEF_MCU_ANALOG_POWERTRAIN_NAME;
+    case CANDEF_MCU_ANALOG_ACCESSORY_FRAME_ID:  return CANDEF_MCU_ANALOG_ACCESSORY_NAME;
+    case CANDEF_MCU_ANALOG_DRIVE_FRAME_ID:      return CANDEF_MCU_ANALOG_DRIVE_NAME;
+    case CANDEF_MCU_ANALOG_UNASSIGNED_FRAME_ID: return CANDEF_MCU_ANALOG_UNASSIGNED_NAME;
+    case CANDEF_PROTIUM_POWER_FRAME_ID:         return CANDEF_PROTIUM_POWER_NAME;
+    case CANDEF_PROTIUM_THERMAL_FRAME_ID:       return CANDEF_PROTIUM_THERMAL_NAME;
+    case CANDEF_PROTIUM_HYDROGEN_FRAME_ID:      return CANDEF_PROTIUM_HYDROGEN_NAME;
+    case CANDEF_PROTIUM_SETPOINTS_FRAME_ID:     return CANDEF_PROTIUM_SETPOINTS_NAME;
+    case CANDEF_PROTIUM_STASIS_FRAME_ID:        return CANDEF_PROTIUM_STASIS_NAME;
+    case CANDEF_PROTIUM_MISC_FRAME_ID:          return CANDEF_PROTIUM_MISC_NAME;
+    case CANDEF_PROTIUM_STATE_FRAME_ID:         return CANDEF_PROTIUM_STATE_NAME;
+    case CANDEF_SWU_LIGHTS_FRAME_ID:            return CANDEF_SWU_LIGHTS_NAME;
+    case CANDEF_MCU_LIGHTING_FRAME_ID:          return CANDEF_MCU_LIGHTING_NAME;
+    case CANDEF_LCU_STATUS_FRAME_ID:            return CANDEF_LCU_STATUS_NAME;
+    default:                                    return "UNKNOWN";
+    }
+}
 
 static int can_socket = 0;
 
@@ -35,7 +66,7 @@ static void can_socket_bind()
         throw std::runtime_error("CAN: fcntl failed to set socket non-blocking");
     }
 
-    std::cout << "CAN: Binding the socket was successfull" << std::endl;
+    log("CAN", "Socket bound to can0");
 }
 
 void* can(void* arg)
@@ -51,11 +82,10 @@ void* can(void* arg)
         // Read CAN bus
         int nbytes = ::read(can_socket, &frame, sizeof(frame));
         if (nbytes > 0) {
-            printf("CAN: Reading packet from bus: can_id = 0x%X, can_dlc = %d\n",
-                frame.can_id, frame.can_dlc);
-
             // Mask out EFF/RTR/ERR flags to get actual CAN ID
             uint32_t can_id = frame.can_id & CAN_EFF_MASK;
+
+            log("CAN", std::format("Reading CAN frame: ID - 0x{:03X} ({}), payload - {}", can_id, can_frame_name(can_id), hex_bytes(frame.data, frame.can_dlc)));
 
             switch (can_id) {
             case CANDEF_MCU_STATE_FRAME_ID: {
@@ -155,8 +185,7 @@ void* can(void* arg)
                 break;
 
             default:
-                std::cout << "CAN: can_id 0x" << std::hex << can_id
-                          << " is currently not supported" << std::dec << std::endl;
+                log("CAN", std::format("0x{:03X} not supported", can_id));
                 break;
             }
         }

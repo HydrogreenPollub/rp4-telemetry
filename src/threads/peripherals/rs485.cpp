@@ -1,4 +1,5 @@
 #include <threads/peripherals/rs485.hpp>
+#include <utils/log.hpp>
 
 #define GPIO_CHIP "/dev/gpiochip0"
 #define RS485_DEVICE "/dev/ttySC0"
@@ -35,7 +36,7 @@ void* rs485(void* arg)
     HmiParser parser;
 
     parser.onMasterMeasurements = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterMeasurements& measurements) {
-        std::cout << "HMI: Master measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)" << std::endl;
+        log("RS485", "Master measurements @ " + std::to_string(msClockTickCount) + " ms (" + std::to_string(cycleClockTickCount) + " cycles)");
 
         set_supercapacitorCurrent(measurements.supercapacitorCurrent);
         set_accelPedalVoltage(measurements.accelPedalVoltage);
@@ -57,13 +58,12 @@ void* rs485(void* arg)
     };
 
     parser.onMasterStatus = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterStatus& status) {
-        std::cout << "HMI: Master status @ " << msClockTickCount << "ms (" << cycleClockTickCount << " cycles)" << std::endl;
-
-        std::cout << "HMI: state = " << std::to_string(static_cast<MasterStatus::State>(status.state)) << std::endl;
-        std::cout << "HMI: mainValveEnableOutput = " << status.mainValveEnableOutput << std::endl;
-        std::cout << "HMI: motorControllerEnableOutput = " << status.motorControllerEnableOutput << std::endl;
-        std::cout << "HMI: accelOutputVoltage = " << status.accelOutputVoltage << std::endl;
-        std::cout << "HMI: brakeOutputVoltage = " << status.brakeOutputVoltage << std::endl;
+        log("RS485", "Master status @ " + std::to_string(msClockTickCount) + " ms (" + std::to_string(cycleClockTickCount) + " cycles)");
+        log("RS485", "state = " + std::to_string(static_cast<MasterStatus::State>(status.state)));
+        log("RS485", "mainValveEnableOutput = " + std::to_string(status.mainValveEnableOutput));
+        log("RS485", "motorControllerEnableOutput = " + std::to_string(status.motorControllerEnableOutput));
+        log("RS485", "accelOutputVoltage = " + std::to_string(status.accelOutputVoltage));
+        log("RS485", "brakeOutputVoltage = " + std::to_string(status.brakeOutputVoltage));
 
         set_masterState(status.state);
         set_mainValveEnableOutput(status.mainValveEnableOutput);
@@ -72,7 +72,7 @@ void* rs485(void* arg)
     };
 
     parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values) {
-        std::cout << "HMI: Protium measurements @ " << msClockTickCount << " ms (" << cycleClockTickCount << " cycles)";
+        log("RS485", "Protium measurements @ " + std::to_string(msClockTickCount) + " ms (" + std::to_string(cycleClockTickCount) + " cycles)");
 
         set_fuelCellEnergyAccumulated(values.Energy);
         set_temperatureFuelCellLocation1(values.FCT1);
@@ -84,15 +84,14 @@ void* rs485(void* arg)
     };
 
     parser.onProtiumOperatingState = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, ProtiumOperatingState currentOperatingState, const ProtiumOperatingStateLogEntry(&operatingStateLogEntries)[8]) {
-        std::cout << "HMI: Protium operating state @ " << msClockTickCount << "ms (" << cycleClockTickCount << " cycles)" << std::endl;
-        std::cout << "HMI: Current opearting state: " << currentOperatingState << std::endl;
-        std::cout << "HMI: Operating state history:" << std::endl;
+        log("RS485", "Protium operating state @ " + std::to_string(msClockTickCount) + " ms (" + std::to_string(cycleClockTickCount) + " cycles)");
+        log("RS485", "Current operating state: " + std::to_string(currentOperatingState));
 
         set_protiumState(currentOperatingState);
 
         std::size_t i = 0;
         for (auto& entry : operatingStateLogEntries) {
-            std::cout << "HMI: history[" << i++ << "] @ {" << entry.msClockTickCount << "}ms -> " << static_cast<ProtiumOperatingState>(entry.state);
+            log("RS485", "history[" + std::to_string(i++) + "] @ " + std::to_string(entry.msClockTickCount) + " ms -> " + std::to_string(static_cast<ProtiumOperatingState>(entry.state)));
         }
     };
 

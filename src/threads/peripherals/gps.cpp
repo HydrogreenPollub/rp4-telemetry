@@ -1,4 +1,7 @@
 #include <threads/peripherals/gps.hpp>
+#include <utils/log.hpp>
+
+#include <format>
 
 #define GPS_DEVICE "/dev/ttyUSB0"
 
@@ -17,7 +20,7 @@ void* gps(void* arg)
     serial.open(GPS_DEVICE, ec);
 
     if (ec) {
-        std::cout << "GPS: Failed to open device - " << ec.message() << std::endl;
+        log("GPS", "Failed to open device - " + ec.message());
         return nullptr;
     }
 
@@ -47,7 +50,7 @@ void* gps(void* arg)
         case MINMEA_SENTENCE_GGA: {
             struct minmea_sentence_gga frame;
             if (minmea_parse_gga(&frame, line.c_str())) {
-                std::cout << "GPS: GGA frame received at time - " << frame.time.hours << ":" << frame.time.minutes << ":" << frame.time.seconds << std::endl;
+                log("GPS", std::format("GGA frame received at time - {:02d}:{:02d}:{:02d}", frame.time.hours, frame.time.minutes, frame.time.seconds));
                 set_gpsLatitude(minmea_tocoord(&frame.latitude));
                 set_gpsLongitude(minmea_tocoord(&frame.longitude));
                 set_gpsAltitude(minmea_tofloat(&frame.altitude));
@@ -67,7 +70,7 @@ void* gps(void* arg)
         case MINMEA_SENTENCE_GSV: {
             struct minmea_sentence_gsv frame;
             if (minmea_parse_gsv(&frame, line.c_str())) {
-                std::cout << "GPS: Total number of satellites visible - " << frame.total_sats << std::endl;
+                log("GPS", "Satellites visible - " + std::to_string(frame.total_sats));
             }
             break;
         }
@@ -131,7 +134,7 @@ void* gps(void* arg)
             break;
         }
         default:
-            std::cout << "GPS: Unhandled NMEA sentence - ID " << sentence_id << std::endl;
+            log("GPS", "Unhandled NMEA sentence - ID " + std::to_string(sentence_id));
             break;
         }
     }

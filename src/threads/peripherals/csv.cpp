@@ -1,4 +1,5 @@
 #include <threads/peripherals/csv.hpp>
+#include <utils/log.hpp>
 
 extern std::atomic<bool> running;
 
@@ -20,7 +21,7 @@ void* csv(void* arg)
     std::ofstream output(filename, std::ios::app);
 
     if (!output.is_open()) {
-        std::cout << "CSV: Unable to open csv file - " << filename << std::endl;
+        log("CSV", "Unable to open file - " + filename);
         return nullptr;
     }
 
@@ -37,7 +38,23 @@ void* csv(void* arg)
            << "masterState,protiumState,mainValveEnableOutput,motorControllerEnableOutput"
            << std::endl;
 
+    constexpr uintmax_t MAX_FILE_SIZE  = 50ULL * 1024 * 1024; // 50 MB
+    constexpr uintmax_t MIN_FREE_SPACE = 20ULL * 1024 * 1024; // 20 MB
+    int checkInterval = 0;
+
     while (running.load(std::memory_order_relaxed)) {
+        if (++checkInterval >= 100) { // check every ~1 s (100 x 10 ms)
+            checkInterval = 0;
+            if (std::filesystem::file_size(filename) >= MAX_FILE_SIZE) {
+                log("CSV", "50 MB file size limit reached, stopping");
+                break;
+            }
+            if (std::filesystem::space(logDir).available < MIN_FREE_SPACE) {
+                log("CSV", "Less than 20 MB disk space free, stopping");
+                break;
+            }
+        }
+
         auto now = std::chrono::system_clock::now();
         auto timestamp = std::chrono::system_clock::to_time_t(now);
 
