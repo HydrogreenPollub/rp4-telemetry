@@ -35,7 +35,11 @@ find_package(Boost REQUIRED)
 
 pkg_check_modules(CAPNP REQUIRED capnp)
 pkg_check_modules(KJ REQUIRED kj)
-pkg_check_modules(GPIODCXX REQUIRED gpiodcxx)
+pkg_check_modules(GPIODCXX QUIET libgpiodcxx)
+if(NOT GPIODCXX_FOUND)
+    set(GPIODCXX_LIBRARIES gpiodcxx)
+    set(GPIODCXX_INCLUDE_DIRS "")
+endif()
 
 file(GLOB_RECURSE SOURCES "src/*.c" "src/**/*.c" "src/*.cpp" "src/**/*.cpp")
 
