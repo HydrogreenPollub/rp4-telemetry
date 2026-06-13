@@ -6,6 +6,7 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <optional>
 #include <string>
 #include <termios.h>
@@ -117,6 +118,34 @@ std::optional<unsigned int> probe_baudrate(asio::serial_port& serial, asio::io_c
     return std::nullopt;
 }
 
+bool sync_system_time_from_gps(const struct minmea_date& date, const struct minmea_time& time)
+{
+    struct tm t = {};
+    if (minmea_getdatetime(&t, &date, &time) != 0) {
+        return false;
+    }
+
+    const time_t epoch = timegm(&t);
+    if (epoch == -1) {
+        return false;
+    }
+
+    const time_t now = time(nullptr);
+    if (now != -1 && std::abs(now - epoch) < 2) {
+        return false;
+    }
+
+    struct timeval tv;
+    tv.tv_sec = epoch;
+    tv.tv_usec = 0;
+    if (settimeofday(&tv, nullptr) != 0) {
+        return false;
+    }
+
+    log("GPS", "System time synced from GPS fix");
+    return true;
+}
+
 void process_nmea_line(const std::string& line)
 {
     const enum minmea_sentence_id sentence_id = minmea_sentence_id(line.c_str(), false);
@@ -147,20 +176,8 @@ void process_nmea_line(const std::string& line)
             set_gpsLongitude(minmea_tocoord(&frame.longitude));
             set_gpsSpeed(minmea_tofloat(&frame.speed) * 1.852);
 
-            struct tm t = {};
-            t.tm_year = frame.date.year + 100;
-            t.tm_mon = frame.date.month - 1;
-            t.tm_mday = frame.date.day;
-            t.tm_hour = frame.time.hours;
-            t.tm_min = frame.time.minutes;
-            t.tm_sec = frame.time.seconds;
-
-            const time_t epoch = timegm(&t);
-            if (epoch != -1) {
-                struct timeval tv;
-                tv.tv_sec = epoch;
-                tv.tv_usec = 0;
-                settimeofday(&tv, nullptr);
+            if (frame.valid) {
+                sync_system_time_from_gps(frame.date, frame.time);
             }
         }
         break;
@@ -172,27 +189,8 @@ void process_nmea_line(const std::string& line)
         }
         break;
     }
-    case MINMEA_SENTENCE_ZDA: {
-        struct minmea_sentence_zda frame;
-        if (minmea_parse_zda(&frame, line.c_str())) {
-            struct tm t = {};
-            t.tm_year = frame.date.year + 100;
-            t.tm_mon = frame.date.month - 1;
-            t.tm_mday = frame.date.day;
-            t.tm_hour = frame.time.hours;
-            t.tm_min = frame.time.minutes;
-            t.tm_sec = frame.time.seconds;
-
-            const time_t epoch = timegm(&t);
-            if (epoch != -1) {
-                struct timeval tv;
-                tv.tv_sec = epoch;
-                tv.tv_usec = 0;
-                settimeofday(&tv, nullptr);
-            }
-        }
+    case MINMEA_SENTENCE_ZDA:
         break;
-    }
     default:
         break;
     }
