@@ -4,8 +4,7 @@
 #include <threads/peripherals/lora.hpp>
 #include <threads/peripherals/rs485.hpp>
 #include <utils/data.hpp>
-#include <utils/rtc_watchdog/DEV_Config.h>
-#include <utils/rtc_watchdog/DS3231.h>
+#include <utils/status.hpp>
 
 #include <atomic>
 #include <csignal>
@@ -17,7 +16,6 @@ std::atomic<bool> running(true);
 void sigaction_handler(int signum)
 {
     (void)signum;
-    std::cout << "MAIN: Sigaction received - Closing program...\n";
     running.store(false, std::memory_order_relaxed);
 }
 
@@ -28,10 +26,13 @@ int main(int argc, char* argv[])
         return EXIT_SUCCESS;
     }
 
-    // Initialize capnp
+    if (!status_try_acquire_primary_lock()) {
+        status_print_cached();
+        return EXIT_SUCCESS;
+    }
+
     init_data();
 
-    // Split program into multiple threads
     std::thread can_thread = std::thread(can, nullptr);
     std::thread csv_thread = std::thread(csv, nullptr);
     std::thread gps_thread = std::thread(gps, nullptr);
@@ -43,6 +44,7 @@ int main(int argc, char* argv[])
     sigaction(SIGINT, &sig, NULL);
 
     while (running.load(std::memory_order_relaxed)) {
+        status_publish();
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
@@ -57,5 +59,6 @@ int main(int argc, char* argv[])
     if (lora_thread.joinable())
         lora_thread.join();
 
+    status_release_primary_lock();
     return EXIT_SUCCESS;
 }

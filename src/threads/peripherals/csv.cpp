@@ -1,5 +1,6 @@
 #include <threads/peripherals/csv.hpp>
 #include <utils/log.hpp>
+#include <utils/log_paths.hpp>
 
 extern std::atomic<bool> running;
 
@@ -7,16 +8,7 @@ void* csv(void* arg)
 {
     (void)arg;
 
-    std::string logDir = std::string("/home/root/logs");
-    std::filesystem::create_directories(logDir);
-
-    // Find the next available numbered file: data_1.csv, data_2.csv, etc.
-    int fileIndex = 1;
-    std::string filename;
-    do {
-        filename = logDir + "/data_" + std::to_string(fileIndex) + ".csv";
-        fileIndex++;
-    } while (std::filesystem::exists(filename));
+    const std::string filename = log_paths::next_data_csv_path();
 
     std::ofstream output(filename, std::ios::app);
 
@@ -27,7 +19,7 @@ void* csv(void* arg)
 
     // TODO come up with a cleaner way of doing this
     output << std::fixed << std::setprecision(10);
-    output << "time,timeBeforeTransmit,accessoryBatteryVoltage,accessoryBatteryCurrent,"
+    output << "id,time,timeBeforeTransmit,accessoryBatteryVoltage,accessoryBatteryCurrent,"
            << "fuelCellOutputVoltage,fuelCellOutputCurrent,supercapacitorVoltage,supercapacitorCurrent,"
            << "motorControllerSupplyVoltage,motorControllerSupplyCurrent,fuelCellEnergyAccumulated,"
            << "h2PressureLow,h2PressureFuelCell,h2PressureHigh,h2LeakageSensorVoltage,"
@@ -41,6 +33,7 @@ void* csv(void* arg)
     constexpr uintmax_t MAX_FILE_SIZE  = 50ULL * 1024 * 1024; // 50 MB
     constexpr uintmax_t MIN_FREE_SPACE = 20ULL * 1024 * 1024; // 20 MB
     int checkInterval = 0;
+    uint64_t row_id = 0;
 
     while (running.load(std::memory_order_relaxed)) {
         if (++checkInterval >= 100) { // check every ~1 s (100 x 10 ms)
@@ -49,17 +42,19 @@ void* csv(void* arg)
                 log("CSV", "50 MB file size limit reached, stopping");
                 break;
             }
-            if (std::filesystem::space(logDir).available < MIN_FREE_SPACE) {
+            if (std::filesystem::space(log_paths::LOG_DIR).available < MIN_FREE_SPACE) {
                 log("CSV", "Less than 20 MB disk space free, stopping");
                 break;
             }
         }
 
         auto now = std::chrono::system_clock::now();
-        auto timestamp = std::chrono::system_clock::to_time_t(now);
+        const double timestamp = std::chrono::duration<double>(now.time_since_epoch()).count();
 
-        output << static_cast<int>(timestamp) << ","
-               << get_timeBeforeTransmit() << ","
+        output << ++row_id << ",";
+        output << std::fixed << std::setprecision(3) << timestamp << ",";
+        output << std::setprecision(10);
+        output << get_timeBeforeTransmit() << ","
                << get_accessoryBatteryVoltage() << ","
                << get_accessoryBatteryCurrent() << ","
                << get_fuelCellOutputVoltage() << ","

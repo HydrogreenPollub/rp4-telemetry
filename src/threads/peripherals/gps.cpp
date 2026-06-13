@@ -1,13 +1,215 @@
 #include <threads/peripherals/gps.hpp>
 #include <utils/log.hpp>
+#include <utils/status.hpp>
 
 #include <format>
 
-#define GPS_DEVICE "/dev/ttyUSB0"
+#include <array>
+#include <chrono>
+#include <optional>
+#include <string>
+#include <termios.h>
 
 namespace asio = boost::asio;
 
 extern std::atomic<bool> running;
+
+namespace {
+
+constexpr const char* GPS_DEVICE = "/dev/ttyUSB0";
+constexpr auto GPS_RECONNECT_INTERVAL = std::chrono::seconds(5);
+constexpr auto GPS_BAUD_PROBE_TIMEOUT = std::chrono::seconds(3);
+constexpr auto GPS_READ_TIMEOUT = std::chrono::seconds(2);
+constexpr auto GPS_STATUS_LOG_INTERVAL = std::chrono::seconds(30);
+constexpr std::array<unsigned int, 2> GPS_BAUD_CANDIDATES = {9600, 115200};
+
+void configure_serial_port(asio::serial_port& serial, unsigned int baud)
+{
+    serial.set_option(asio::serial_port::baud_rate(baud));
+    serial.set_option(asio::serial_port::character_size(8));
+    serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
+    serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
+    serial.set_option(asio::serial_port::flow_control(asio::serial_port::flow_control::none));
+    ::tcflush(serial.native_handle(), TCIOFLUSH);
+}
+
+bool is_valid_nmea_line(const std::string& line)
+{
+    if (line.size() < 6 || line[0] != '$') {
+        return false;
+    }
+    if (!minmea_check(line.c_str(), false)) {
+        return false;
+    }
+    const enum minmea_sentence_id sentence_id = minmea_sentence_id(line.c_str(), false);
+    return sentence_id != MINMEA_INVALID && sentence_id != MINMEA_UNKNOWN;
+}
+
+std::optional<std::string> read_nmea_line(
+    asio::serial_port& serial,
+    asio::io_context& io,
+    std::chrono::milliseconds timeout,
+    boost::system::error_code& out_ec)
+{
+    asio::streambuf buf;
+    std::optional<std::string> line;
+    bool finished = false;
+
+    asio::async_read_until(
+        serial,
+        buf,
+        "\r\n",
+        [&](const boost::system::error_code& ec, std::size_t) {
+            out_ec = ec;
+            if (!ec) {
+                std::istream input(&buf);
+                std::string sentence;
+                std::getline(input, sentence);
+                if (!sentence.empty() && sentence.back() == '\r') {
+                    sentence.pop_back();
+                }
+                line = std::move(sentence);
+            }
+            finished = true;
+        });
+
+    asio::steady_timer timer(io);
+    timer.expires_after(timeout);
+    timer.async_wait([&](const boost::system::error_code& ec) {
+        if (!finished && !ec) {
+            serial.cancel();
+        }
+    });
+
+    io.restart();
+    io.run();
+    io.restart();
+
+    return line;
+}
+
+std::optional<unsigned int> probe_baudrate(asio::serial_port& serial, asio::io_context& io)
+{
+    for (unsigned int baud : GPS_BAUD_CANDIDATES) {
+        configure_serial_port(serial, baud);
+
+        const auto deadline = std::chrono::steady_clock::now() + GPS_BAUD_PROBE_TIMEOUT;
+        while (running.load(std::memory_order_relaxed)
+            && std::chrono::steady_clock::now() < deadline) {
+            const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(
+                deadline - std::chrono::steady_clock::now());
+            if (remaining <= std::chrono::milliseconds(0)) {
+                break;
+            }
+
+            const auto chunk = std::min(remaining, std::chrono::milliseconds(500));
+            boost::system::error_code ec;
+            const auto line = read_nmea_line(serial, io, chunk, ec);
+            if (line && is_valid_nmea_line(*line)) {
+                return baud;
+            }
+            if (ec && ec != asio::error::operation_aborted) {
+                break;
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+void process_nmea_line(const std::string& line)
+{
+    const enum minmea_sentence_id sentence_id = minmea_sentence_id(line.c_str(), false);
+    switch (sentence_id) {
+    case MINMEA_SENTENCE_GGA: {
+        struct minmea_sentence_gga frame;
+        if (minmea_parse_gga(&frame, line.c_str())) {
+            set_gpsLatitude(minmea_tocoord(&frame.latitude));
+            set_gpsLongitude(minmea_tocoord(&frame.longitude));
+            set_gpsAltitude(minmea_tofloat(&frame.altitude));
+        }
+        break;
+    }
+    case MINMEA_SENTENCE_GLL: {
+        struct minmea_sentence_gll frame;
+        if (minmea_parse_gll(&frame, line.c_str())) {
+            set_gpsLatitude(minmea_tocoord(&frame.latitude));
+            set_gpsLongitude(minmea_tocoord(&frame.longitude));
+        }
+        break;
+    }
+    case MINMEA_SENTENCE_GSV:
+        break;
+    case MINMEA_SENTENCE_RMC: {
+        struct minmea_sentence_rmc frame;
+        if (minmea_parse_rmc(&frame, line.c_str())) {
+            set_gpsLatitude(minmea_tocoord(&frame.latitude));
+            set_gpsLongitude(minmea_tocoord(&frame.longitude));
+            set_gpsSpeed(minmea_tofloat(&frame.speed) * 1.852);
+
+            struct tm t = {};
+            t.tm_year = frame.date.year + 100;
+            t.tm_mon = frame.date.month - 1;
+            t.tm_mday = frame.date.day;
+            t.tm_hour = frame.time.hours;
+            t.tm_min = frame.time.minutes;
+            t.tm_sec = frame.time.seconds;
+
+            const time_t epoch = timegm(&t);
+            if (epoch != -1) {
+                struct timeval tv;
+                tv.tv_sec = epoch;
+                tv.tv_usec = 0;
+                settimeofday(&tv, nullptr);
+            }
+        }
+        break;
+    }
+    case MINMEA_SENTENCE_VTG: {
+        struct minmea_sentence_vtg frame;
+        if (minmea_parse_vtg(&frame, line.c_str())) {
+            set_gpsSpeed(minmea_tofloat(&frame.speed_kph));
+        }
+        break;
+    }
+    case MINMEA_SENTENCE_ZDA: {
+        struct minmea_sentence_zda frame;
+        if (minmea_parse_zda(&frame, line.c_str())) {
+            struct tm t = {};
+            t.tm_year = frame.date.year + 100;
+            t.tm_mon = frame.date.month - 1;
+            t.tm_mday = frame.date.day;
+            t.tm_hour = frame.time.hours;
+            t.tm_min = frame.time.minutes;
+            t.tm_sec = frame.time.seconds;
+
+            const time_t epoch = timegm(&t);
+            if (epoch != -1) {
+                struct timeval tv;
+                tv.tv_sec = epoch;
+                tv.tv_usec = 0;
+                settimeofday(&tv, nullptr);
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void log_gps_status(unsigned int baud)
+{
+    log("GPS", std::format(
+        "status @ {} baud | lat={:.6f} lon={:.6f} alt={:.1f} spd={:.1f}",
+        baud,
+        get_gpsLatitude(),
+        get_gpsLongitude(),
+        get_gpsAltitude(),
+        get_gpsSpeed()));
+}
+
+} // namespace
 
 void* gps(void* arg)
 {
@@ -15,129 +217,64 @@ void* gps(void* arg)
 
     asio::io_context io;
     asio::serial_port serial(io);
+    std::optional<unsigned int> active_baud;
+    auto last_status_log = std::chrono::steady_clock::now();
 
-    boost::system::error_code ec;
-    serial.open(GPS_DEVICE, ec);
-
-    if (ec) {
-        log("GPS", "Failed to open device - " + ec.message());
-        return nullptr;
-    }
-
-#ifdef CONFIG_GPS_9600
-    serial.set_option(asio::serial_port::baud_rate(9600));
-#elif defined(CONFIG_GPS_115200)
-    serial.set_option(asio::serial_port::baud_rate(115200));
-#else
-#error "Select either CONFIG_GPS_9600 or CONFIG_GPS_115200"
-#endif
-    serial.set_option(asio::serial_port::character_size(8));
-    serial.set_option(asio::serial_port::parity(asio::serial_port::parity::none));
-    serial.set_option(asio::serial_port::stop_bits(asio::serial_port::stop_bits::one));
-    serial.set_option(asio::serial_port::flow_control(asio::serial_port::flow_control::none));
+    status_set_gps(false, 0);
 
     while (running.load(std::memory_order_relaxed)) {
-        boost::asio::streambuf buf;
-        boost::asio::read_until(serial, buf, "\r\n"); // NMEA sentences end with CRLF
-
-        std::istream input(&buf);
-        std::string line;
-        std::getline(input, line);
-
-        enum minmea_sentence_id sentence_id = minmea_sentence_id(line.c_str(), false);
-        switch (sentence_id) {
-        // Global Positioning System Fix Data
-        case MINMEA_SENTENCE_GGA: {
-            struct minmea_sentence_gga frame;
-            if (minmea_parse_gga(&frame, line.c_str())) {
-                log("GPS", std::format("GGA frame received at time - {:02d}:{:02d}:{:02d}", frame.time.hours, frame.time.minutes, frame.time.seconds));
-                set_gpsLatitude(minmea_tocoord(&frame.latitude));
-                set_gpsLongitude(minmea_tocoord(&frame.longitude));
-                set_gpsAltitude(minmea_tofloat(&frame.altitude));
+        if (!serial.is_open()) {
+            boost::system::error_code ec;
+            serial.open(GPS_DEVICE, ec);
+            if (ec) {
+                log("GPS", "Device not available - " + ec.message() + ", retry in 5s");
+                std::this_thread::sleep_for(GPS_RECONNECT_INTERVAL);
+                continue;
             }
-            break;
-        }
-        // Geographic position, latitude and longitude
-        case MINMEA_SENTENCE_GLL: {
-            struct minmea_sentence_gll frame;
-            if (minmea_parse_gll(&frame, line.c_str())) {
-                set_gpsLatitude(minmea_tocoord(&frame.latitude));
-                set_gpsLongitude(minmea_tocoord(&frame.longitude));
-            }
-            break;
-        }
-        // GPS Satellites in view
-        case MINMEA_SENTENCE_GSV: {
-            struct minmea_sentence_gsv frame;
-            if (minmea_parse_gsv(&frame, line.c_str())) {
-                log("GPS", "Satellites visible - " + std::to_string(frame.total_sats));
-            }
-            break;
-        }
-        // Recommended minimum specific GPS
-        case MINMEA_SENTENCE_RMC: {
-            struct minmea_sentence_rmc frame;
-            if (minmea_parse_rmc(&frame, line.c_str())) {
-                set_gpsLatitude(minmea_tocoord(&frame.latitude));
-                set_gpsLongitude(minmea_tocoord(&frame.longitude));
-                set_gpsSpeed(minmea_tofloat(&frame.speed) * 1.852); // Convert to km/h from knots
 
-                // Set time
-                struct tm t = {};
-                t.tm_year = frame.date.year + 100; // Years since 1900
-                t.tm_mon = frame.date.month - 1; // Months since January
-                t.tm_mday = frame.date.day;
-                t.tm_hour = frame.time.hours;
-                t.tm_min = frame.time.minutes;
-                t.tm_sec = frame.time.seconds;
-
-                time_t epoch = timegm(&t); // Convert to Unix time (UTC)
-                if (epoch != -1) {
-                    struct timeval tv;
-                    tv.tv_sec = epoch;
-                    tv.tv_usec = 0;
-
-                    settimeofday(&tv, nullptr);
-                }
+            active_baud = probe_baudrate(serial, io);
+            if (!active_baud) {
+                log("GPS", "No valid NMEA at 9600/115200, retry in 5s");
+                serial.close();
+                std::this_thread::sleep_for(GPS_RECONNECT_INTERVAL);
+                continue;
             }
-            break;
-        }
-        // Track made good and ground speed
-        case MINMEA_SENTENCE_VTG: {
-            struct minmea_sentence_vtg frame;
-            if (minmea_parse_vtg(&frame, line.c_str())) {
-                set_gpsSpeed(minmea_tofloat(&frame.speed_kph));
-            }
-            break;
-        }
-        // Time and date
-        case MINMEA_SENTENCE_ZDA: {
-            struct minmea_sentence_zda frame;
-            if (minmea_parse_zda(&frame, line.c_str())) {
-                struct tm t = {};
-                t.tm_year = frame.date.year + 100; // Years since 1900
-                t.tm_mon = frame.date.month - 1; // Months since January
-                t.tm_mday = frame.date.day;
-                t.tm_hour = frame.time.hours;
-                t.tm_min = frame.time.minutes;
-                t.tm_sec = frame.time.seconds;
 
-                time_t epoch = timegm(&t); // Convert to Unix time (UTC)
-                if (epoch != -1) {
-                    struct timeval tv;
-                    tv.tv_sec = epoch;
-                    tv.tv_usec = 0;
-
-                    settimeofday(&tv, nullptr);
-                }
-            }
-            break;
+            log("GPS", "Connected at " + std::to_string(*active_baud) + " baud");
+            status_set_gps(true, *active_baud);
+            last_status_log = std::chrono::steady_clock::now();
         }
-        default:
-            log("GPS", "Unhandled NMEA sentence - ID " + std::to_string(sentence_id));
-            break;
+
+        boost::system::error_code ec;
+        const auto line = read_nmea_line(
+            serial,
+            io,
+            std::chrono::duration_cast<std::chrono::milliseconds>(GPS_READ_TIMEOUT),
+            ec);
+
+        if (!line) {
+            if (ec && ec != asio::error::operation_aborted) {
+                log("GPS", "Read error - " + ec.message() + ", reconnecting");
+                serial.close();
+                active_baud.reset();
+                status_set_gps(false, 0);
+                continue;
+            }
+        } else {
+            process_nmea_line(*line);
+        }
+
+        const auto now = std::chrono::steady_clock::now();
+        if (active_baud && now - last_status_log >= GPS_STATUS_LOG_INTERVAL) {
+            log_gps_status(*active_baud);
+            last_status_log = now;
         }
     }
 
+    if (serial.is_open()) {
+        serial.close();
+    }
+
+    status_set_gps(false, 0);
     return nullptr;
 }

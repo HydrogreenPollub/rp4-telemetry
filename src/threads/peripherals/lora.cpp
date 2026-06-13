@@ -1,5 +1,8 @@
 #include <threads/peripherals/lora.hpp>
+#include <utils/data.hpp>
 #include <utils/log.hpp>
+
+#include <format>
 
 #define LORA_DEVICE "/dev/ttyS0"
 constexpr size_t FRAME_SIZE = TSDATA_BUFFER_SIZE + 4;
@@ -51,7 +54,14 @@ void* lora(void* arg)
         frame[TSDATA_BUFFER_SIZE + 2] = '\n';
         frame[TSDATA_BUFFER_SIZE + 3] = '\r';
 
-        log("LoRa", "Sending buffer - " + hex_bytes(data, TSDATA_BUFFER_SIZE));
+        log("LoRa", std::format(
+            "sent 160B | fc_v={:.1f} fc_i={:.2f} sc_v={:.1f} sc_i={:.2f} mc_v={:.1f} mc_i={:.2f}",
+            get_fuelCellOutputVoltage(),
+            get_fuelCellOutputCurrent(),
+            get_supercapacitorVoltage(),
+            get_supercapacitorCurrent(),
+            get_motorControllerSupplyVoltage(),
+            get_motorControllerSupplyCurrent()));
 
         serial.write_some(asio::buffer(frame));
         std::this_thread::sleep_for(std::chrono::seconds(1));
