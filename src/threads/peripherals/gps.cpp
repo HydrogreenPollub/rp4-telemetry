@@ -118,10 +118,10 @@ std::optional<unsigned int> probe_baudrate(asio::serial_port& serial, asio::io_c
     return std::nullopt;
 }
 
-bool sync_system_time_from_gps(const struct minmea_date& date, const struct minmea_time& time)
+bool sync_system_time_from_gps(const struct minmea_date& date, const struct minmea_time& gps_time)
 {
     struct tm t = {};
-    if (minmea_getdatetime(&t, &date, &time) != 0) {
+    if (minmea_getdatetime(&t, &date, &gps_time) != 0) {
         return false;
     }
 
@@ -130,7 +130,7 @@ bool sync_system_time_from_gps(const struct minmea_date& date, const struct minm
         return false;
     }
 
-    const time_t now = time(nullptr);
+    const time_t now = ::time(nullptr);
     if (now != -1 && std::abs(now - epoch) < 2) {
         return false;
     }
