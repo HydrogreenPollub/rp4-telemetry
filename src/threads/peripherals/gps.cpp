@@ -49,12 +49,13 @@ bool is_valid_nmea_line(const std::string& line)
 std::optional<std::string> read_nmea_line(
     asio::serial_port& serial,
     asio::io_context& io,
+    asio::streambuf& buf,
     std::chrono::milliseconds timeout,
     boost::system::error_code& out_ec)
 {
-    asio::streambuf buf;
     std::optional<std::string> line;
     bool finished = false;
+    asio::steady_timer timer(io);
 
     asio::async_read_until(
         serial,
@@ -72,12 +73,13 @@ std::optional<std::string> read_nmea_line(
                 line = std::move(sentence);
             }
             finished = true;
+            timer.cancel();
         });
 
-    asio::steady_timer timer(io);
     timer.expires_after(timeout);
     timer.async_wait([&](const boost::system::error_code& ec) {
         if (!finished && !ec) {
+            out_ec = asio::error::timed_out;
             serial.cancel();
         }
     });
@@ -91,8 +93,11 @@ std::optional<std::string> read_nmea_line(
 
 std::optional<unsigned int> probe_baudrate(asio::serial_port& serial, asio::io_context& io)
 {
+    asio::streambuf rx_buffer;
+
     for (unsigned int baud : GPS_BAUD_CANDIDATES) {
         configure_serial_port(serial, baud);
+        rx_buffer.consume(rx_buffer.size());
 
         const auto deadline = std::chrono::steady_clock::now() + GPS_BAUD_PROBE_TIMEOUT;
         while (running.load(std::memory_order_relaxed)
@@ -105,7 +110,7 @@ std::optional<unsigned int> probe_baudrate(asio::serial_port& serial, asio::io_c
 
             const auto chunk = std::min(remaining, std::chrono::milliseconds(500));
             boost::system::error_code ec;
-            const auto line = read_nmea_line(serial, io, chunk, ec);
+            const auto line = read_nmea_line(serial, io, rx_buffer, chunk, ec);
             if (line && is_valid_nmea_line(*line)) {
                 return baud;
             }
@@ -216,6 +221,7 @@ void* gps(void* arg)
     asio::io_context io;
     asio::serial_port serial(io);
     std::optional<unsigned int> active_baud;
+    asio::streambuf rx_buffer;
     auto last_status_log = std::chrono::steady_clock::now();
 
     status_set_gps(false, 0);
@@ -240,6 +246,7 @@ void* gps(void* arg)
 
             log("GPS", "Connected at " + std::to_string(*active_baud) + " baud");
             status_set_gps(true, *active_baud);
+            rx_buffer.consume(rx_buffer.size());
             last_status_log = std::chrono::steady_clock::now();
         }
 
@@ -247,6 +254,7 @@ void* gps(void* arg)
         const auto line = read_nmea_line(
             serial,
             io,
+            rx_buffer,
             std::chrono::duration_cast<std::chrono::milliseconds>(GPS_READ_TIMEOUT),
             ec);
 
@@ -255,6 +263,7 @@ void* gps(void* arg)
                 log("GPS", "Read error - " + ec.message() + ", reconnecting");
                 serial.close();
                 active_baud.reset();
+                rx_buffer.consume(rx_buffer.size());
                 status_set_gps(false, 0);
                 continue;
             }
