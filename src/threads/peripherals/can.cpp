@@ -49,9 +49,9 @@ static void can_socket_bind()
 // Repurposed old ts_data slots (protium stack removed, schema unchanged):
 //   h2PressureFuelCell          <- MCU_STATE vehicle_type + vehicle_allowed_to_move * 100
 //   fanDutyCycle                <- FCCU_STATE fan_duty (%)
-//   fuelCellEnergyAccumulated   <- FCCU_THERMAL bme76_humidity (%)
-//   blowerDutyCycle             <- FCCU_HYDROGEN flow_rate (Ln/min)
-//   protiumState                <- FCCU_STATE running_state
+//   fuelCellEnergyAccumulated   <- FCCU_ENVIRONMENT ambient_humidity (%)
+//   blowerDutyCycle             <- FCCU_HYDROGEN h2_flow (Ln/min)
+//   protiumState                <- FCCU_STATE state
 
 static uint16_t map_mcu_status_to_master_state(uint8_t can_status)
 {
@@ -159,11 +159,9 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
         if (candef_fccu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
-        set_temperatureFuelCellLocation1(static_cast<float>(
-            candef_fccu_state_fc_temp_c_decode(msg.fc_temp_c)));
         set_fanDutyCycle(static_cast<float>(
             candef_fccu_state_fan_duty_decode(msg.fan_duty)));
-        set_protiumState(static_cast<uint16_t>(msg.running_state));
+        set_protiumState(static_cast<uint16_t>(msg.state));
         break;
     }
 
@@ -173,23 +171,25 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
             break;
         }
         set_h2PressureLow(static_cast<float>(
-            candef_fccu_hydrogen_lp_pressure_decode(msg.lp_pressure)));
+            candef_fccu_hydrogen_h2_lp_pressure_decode(msg.h2_lp_pressure)));
         set_h2PressureHigh(static_cast<float>(
-            candef_fccu_hydrogen_hp_pressure_decode(msg.hp_pressure)));
+            candef_fccu_hydrogen_h2_hp_pressure_decode(msg.h2_hp_pressure)));
         set_blowerDutyCycle(static_cast<float>(
-            candef_fccu_hydrogen_flow_rate_decode(msg.flow_rate)));
+            candef_fccu_hydrogen_h2_flow_decode(msg.h2_flow)));
         break;
     }
 
-    case CANDEF_FCCU_THERMAL_FRAME_ID: {
-        struct candef_fccu_thermal_t msg {};
-        if (candef_fccu_thermal_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+    case CANDEF_FCCU_ENVIRONMENT_FRAME_ID: {
+        struct candef_fccu_environment_t msg {};
+        if (candef_fccu_environment_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
+        set_temperatureFuelCellLocation1(static_cast<float>(
+            candef_fccu_environment_fc_temp_c_decode(msg.fc_temp_c)));
         set_temperatureFuelCellLocation2(static_cast<float>(
-            candef_fccu_thermal_bme76_temp_decode(msg.bme76_temp)));
+            candef_fccu_environment_ambient_temp_c_decode(msg.ambient_temp_c)));
         set_fuelCellEnergyAccumulated(static_cast<float>(
-            candef_fccu_thermal_bme76_humidity_decode(msg.bme76_humidity)));
+            candef_fccu_environment_ambient_humidity_decode(msg.ambient_humidity)));
         break;
     }
 

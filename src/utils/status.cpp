@@ -118,15 +118,13 @@ void CanRxStats::record(uint32_t can_id)
         break;
     case CANDEF_FCCU_STATE_FRAME_ID:
     case CANDEF_FCCU_HYDROGEN_FRAME_ID:
-    case CANDEF_FCCU_THERMAL_FRAME_ID:
+    case CANDEF_FCCU_ENVIRONMENT_FRAME_ID:
         ++fccu;
         break;
     case CANDEF_FCCU_POWER_FRAME_ID:
     case CANDEF_FCCU_CURRENTS_FRAME_ID:
-    case CANDEF_FCCU_FLOW_FRAME_ID:
         break;
     case CANDEF_SWU_LIGHTS_FRAME_ID:
-    case CANDEF_SWU_INPUTS_FRAME_ID:
         ++swu_lights;
         break;
     case CANDEF_SWU_TIME_FRAME_ID:
