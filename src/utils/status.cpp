@@ -39,9 +39,9 @@ std::string format_snapshot(const CanRxStats& can, bool gps_connected, unsigned 
     return std::format(
         "Telemetry {} (uptime {}s)\n"
         "CAN last 1s: rx={} unknown={} | STATE={} FAULTS={} DRIVE={} PT={} FC={} ACC={} "
-        "PEDALS={} INPUTS={} PROTIUM={}\n"
+        "PEDALS={} INPUTS={} FCCU={} SWU_TIME={} SWU_STATE={}\n"
         "Values: fc_v={:.1f}V fc_i={:.2f}A sc_v={:.1f}V sc_i={:.2f}A mc_v={:.1f}V mc_i={:.2f}A "
-        "ab_v={:.1f}V | master={} protium={} rpm={:.0f} speed={:.1f}\n"
+        "ab_v={:.1f}V | master={} protium={} rpm={:.0f} speed={:.1f} | lap={} lap_ms={}\n"
         "GPS: {}\n",
         TELEMETRY_VERSION,
         uptime.count(),
@@ -55,7 +55,9 @@ std::string format_snapshot(const CanRxStats& can, bool gps_connected, unsigned 
         can.mcu_accessory,
         can.mcu_pedals,
         can.mcu_inputs,
-        can.protium,
+        can.fccu,
+        can.swu_time,
+        can.swu_state,
         get_fuelCellOutputVoltage(),
         get_fuelCellOutputCurrent(),
         get_supercapacitorVoltage(),
@@ -67,6 +69,8 @@ std::string format_snapshot(const CanRxStats& can, bool gps_connected, unsigned 
         get_protiumState(),
         get_sensorRpm(),
         get_sensorSpeed(),
+        get_lapNumber(),
+        get_lapTime(),
         gps_connected
             ? std::format("connected @ {} baud | lat={:.6f} lon={:.6f} spd={:.1f}",
                 gps_baud,
@@ -106,23 +110,33 @@ void CanRxStats::record(uint32_t can_id)
     case CANDEF_MCU_ANALOG_DRIVE_FRAME_ID:
         ++mcu_drive;
         break;
+    case CANDEF_MCU_ANALOG_OUTPUTS_FRAME_ID:
+        ++mcu_pedals;
+        break;
     case CANDEF_MCU_ANALOG_UNASSIGNED_FRAME_ID:
         ++mcu_unassigned;
         break;
-    case CANDEF_PROTIUM_POWER_FRAME_ID:
-    case CANDEF_PROTIUM_THERMAL_FRAME_ID:
-    case CANDEF_PROTIUM_HYDROGEN_FRAME_ID:
-    case CANDEF_PROTIUM_SETPOINTS_FRAME_ID:
-    case CANDEF_PROTIUM_STASIS_FRAME_ID:
-    case CANDEF_PROTIUM_MISC_FRAME_ID:
-    case CANDEF_PROTIUM_STATE_FRAME_ID:
-        ++protium;
+    case CANDEF_FCCU_STATE_FRAME_ID:
+    case CANDEF_FCCU_HYDROGEN_FRAME_ID:
+    case CANDEF_FCCU_THERMAL_FRAME_ID:
+        ++fccu;
+        break;
+    case CANDEF_FCCU_POWER_FRAME_ID:
+    case CANDEF_FCCU_CURRENTS_FRAME_ID:
+    case CANDEF_FCCU_FLOW_FRAME_ID:
         break;
     case CANDEF_SWU_LIGHTS_FRAME_ID:
+    case CANDEF_SWU_INPUTS_FRAME_ID:
         ++swu_lights;
         break;
-    case CANDEF_CCU_STATUS_FRAME_ID:
+    case CANDEF_SWU_TIME_FRAME_ID:
+        ++swu_time;
+        break;
+    case CANDEF_SWU_STATE_FRAME_ID:
+        ++swu_state;
+        break;
     case CANDEF_MCU_TIME_SYNC_FRAME_ID:
+    case CANDEF_CCU_STATUS_FRAME_ID:
     case CANDEF_MCU_LIGHTING_FRAME_ID:
     case CANDEF_LCU_STATUS_FRAME_ID:
         ++other;

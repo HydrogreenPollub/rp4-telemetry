@@ -15,8 +15,10 @@ struct CanRxStats {
     uint32_t mcu_accessory = 0;
     uint32_t mcu_drive = 0;
     uint32_t mcu_unassigned = 0;
-    uint32_t protium = 0;
+    uint32_t fccu = 0;
     uint32_t swu_lights = 0;
+    uint32_t swu_time = 0;
+    uint32_t swu_state = 0;
     uint32_t other = 0;
 
     void record(uint32_t can_id);

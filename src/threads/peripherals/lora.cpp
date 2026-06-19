@@ -55,13 +55,16 @@ void* lora(void* arg)
         frame[TSDATA_BUFFER_SIZE + 3] = '\r';
 
         log("LoRa", std::format(
-            "sent 160B | fc_v={:.1f} fc_i={:.2f} sc_v={:.1f} sc_i={:.2f} mc_v={:.1f} mc_i={:.2f}",
+            "sent 160B | fc_v={:.1f} fc_i={:.2f} sc_v={:.1f} sc_i={:.2f} mc_v={:.1f} mc_i={:.2f} "
+            "lap={} lap_ms={}",
             get_fuelCellOutputVoltage(),
             get_fuelCellOutputCurrent(),
             get_supercapacitorVoltage(),
             get_supercapacitorCurrent(),
             get_motorControllerSupplyVoltage(),
-            get_motorControllerSupplyCurrent()));
+            get_motorControllerSupplyCurrent(),
+            get_lapNumber(),
+            get_lapTime()));
 
         serial.write_some(asio::buffer(frame));
         std::this_thread::sleep_for(std::chrono::seconds(1));

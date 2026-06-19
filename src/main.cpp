@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     std::thread can_thread = std::thread(can, nullptr);
     std::thread csv_thread = std::thread(csv, nullptr);
     std::thread gps_thread = std::thread(gps, nullptr);
-    std::thread rs485_thread = std::thread(rs485, nullptr);
+    // std::thread rs485_thread = std::thread(rs485, nullptr);
     std::thread lora_thread = std::thread(lora, nullptr);
 
     struct sigaction sig = {};
@@ -54,8 +54,8 @@ int main(int argc, char* argv[])
         csv_thread.join();
     if (gps_thread.joinable())
         gps_thread.join();
-    if (rs485_thread.joinable())
-        rs485_thread.join();
+    // if (rs485_thread.joinable())
+    //     rs485_thread.join();
     if (lora_thread.joinable())
         lora_thread.join();
 

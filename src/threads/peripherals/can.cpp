@@ -46,6 +46,29 @@ static void can_socket_bind()
     log("CAN", "Socket bound to can0");
 }
 
+// Repurposed old ts_data slots (protium stack removed, schema unchanged):
+//   h2PressureFuelCell          <- MCU_STATE vehicle_type + vehicle_allowed_to_move * 100
+//   fanDutyCycle                <- FCCU_STATE fan_duty (%)
+//   fuelCellEnergyAccumulated   <- FCCU_THERMAL bme76_humidity (%)
+//   blowerDutyCycle             <- FCCU_HYDROGEN flow_rate (Ln/min)
+//   protiumState                <- FCCU_STATE running_state
+
+static uint16_t map_mcu_status_to_master_state(uint8_t can_status)
+{
+    switch (can_status) {
+    case CANDEF_MCU_STATE_STATUS_RUNNING_CHOICE:
+        return 1;
+    case CANDEF_MCU_STATE_STATUS_SHUTTING_DOWN_CHOICE:
+        return 2;
+    case CANDEF_MCU_STATE_STATUS_INIT_CHOICE:
+    case CANDEF_MCU_STATE_STATUS_IDLE_CHOICE:
+    case CANDEF_MCU_STATE_STATUS_STARTING_CHOICE:
+        return 0;
+    default:
+        return 3;
+    }
+}
+
 static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
 {
     const uint32_t can_id = frame.can_id & CAN_EFF_MASK;
@@ -54,10 +77,25 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     switch (can_id) {
     case CANDEF_MCU_STATE_FRAME_ID: {
         struct candef_mcu_state_t msg {};
-        candef_mcu_state_unpack(&msg, frame.data, frame.can_dlc);
-        set_masterState(msg.status);
-        set_mainValveEnableOutput(msg.main_valve_enabled);
-        set_motorControllerEnableOutput(msg.motor_controller_enabled);
+        if (candef_mcu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        set_masterState(map_mcu_status_to_master_state(msg.status));
+        set_mainValveEnableOutput(msg.main_valve_enabled != 0);
+        set_motorControllerEnableOutput(msg.motor_controller_enabled != 0);
+        set_h2PressureFuelCell(static_cast<float>(msg.vehicle_type)
+            + static_cast<float>(msg.vehicle_allowed_to_move) * 100.0f);
+        break;
+    }
+
+    case CANDEF_MCU_INPUTS_FRAME_ID: {
+        struct candef_mcu_inputs_t msg {};
+        if (candef_mcu_inputs_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        uint8_t packed[1] = {};
+        candef_mcu_inputs_pack(packed, &msg, sizeof(packed));
+        set_buttonsMasterMask(packed[0]);
         break;
     }
 
@@ -74,7 +112,6 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
         candef_mcu_analog_fuel_cell_unpack(&msg, frame.data, frame.can_dlc);
         set_fuelCellOutputCurrent(static_cast<float>(candef_mcu_analog_fuel_cell_fuel_cell_output_current_decode(msg.fuel_cell_output_current)));
         set_fuelCellOutputVoltage(static_cast<float>(candef_mcu_analog_fuel_cell_fuel_cell_output_voltage_decode(msg.fuel_cell_output_voltage)));
-        set_h2PressureHigh(static_cast<float>(candef_mcu_analog_fuel_cell_hydrogen_high_pressure_decode(msg.hydrogen_high_pressure)));
         set_h2LeakageSensorVoltage(static_cast<float>(candef_mcu_analog_fuel_cell_hydrogen_leakage_sensor_voltage_decode(msg.hydrogen_leakage_sensor_voltage)));
         break;
     }
@@ -105,35 +142,54 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
         break;
     }
 
-    case CANDEF_PROTIUM_POWER_FRAME_ID: {
-        struct candef_protium_power_t msg {};
-        candef_protium_power_unpack(&msg, frame.data, frame.can_dlc);
-        set_fuelCellEnergyAccumulated(static_cast<float>(candef_protium_power_energy_decode(msg.energy)));
+    case CANDEF_MCU_ANALOG_OUTPUTS_FRAME_ID: {
+        struct candef_mcu_analog_outputs_t msg {};
+        if (candef_mcu_analog_outputs_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        set_accelOutputVoltage(static_cast<float>(
+            candef_mcu_analog_outputs_acceleration_output_voltage_decode(msg.acceleration_output_voltage)));
+        set_brakeOutputVoltage(static_cast<float>(
+            candef_mcu_analog_outputs_brake_output_voltage_decode(msg.brake_output_voltage)));
         break;
     }
 
-    case CANDEF_PROTIUM_THERMAL_FRAME_ID: {
-        struct candef_protium_thermal_t msg {};
-        candef_protium_thermal_unpack(&msg, frame.data, frame.can_dlc);
-        set_temperatureFuelCellLocation1(static_cast<float>(candef_protium_thermal_fct1_decode(msg.fct1)));
-        set_temperatureFuelCellLocation2(static_cast<float>(candef_protium_thermal_fct2_decode(msg.fct2)));
-        set_fanDutyCycle(static_cast<float>(candef_protium_thermal_fan_decode(msg.fan)));
-        set_blowerDutyCycle(static_cast<float>(candef_protium_thermal_blw_decode(msg.blw)));
+    case CANDEF_FCCU_STATE_FRAME_ID: {
+        struct candef_fccu_state_t msg {};
+        if (candef_fccu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        set_temperatureFuelCellLocation1(static_cast<float>(
+            candef_fccu_state_fc_temp_c_decode(msg.fc_temp_c)));
+        set_fanDutyCycle(static_cast<float>(
+            candef_fccu_state_fan_duty_decode(msg.fan_duty)));
+        set_protiumState(static_cast<uint16_t>(msg.running_state));
         break;
     }
 
-    case CANDEF_PROTIUM_HYDROGEN_FRAME_ID: {
-        struct candef_protium_hydrogen_t msg {};
-        candef_protium_hydrogen_unpack(&msg, frame.data, frame.can_dlc);
-        set_h2PressureLow(static_cast<float>(candef_protium_hydrogen_h2_p2_decode(msg.h2_p2)));
-        set_h2PressureFuelCell(static_cast<float>(candef_protium_hydrogen_tank_p_decode(msg.tank_p)));
+    case CANDEF_FCCU_HYDROGEN_FRAME_ID: {
+        struct candef_fccu_hydrogen_t msg {};
+        if (candef_fccu_hydrogen_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        set_h2PressureLow(static_cast<float>(
+            candef_fccu_hydrogen_lp_pressure_decode(msg.lp_pressure)));
+        set_h2PressureHigh(static_cast<float>(
+            candef_fccu_hydrogen_hp_pressure_decode(msg.hp_pressure)));
+        set_blowerDutyCycle(static_cast<float>(
+            candef_fccu_hydrogen_flow_rate_decode(msg.flow_rate)));
         break;
     }
 
-    case CANDEF_PROTIUM_STATE_FRAME_ID: {
-        struct candef_protium_state_t msg {};
-        candef_protium_state_unpack(&msg, frame.data, frame.can_dlc);
-        set_protiumState(msg.operating_state);
+    case CANDEF_FCCU_THERMAL_FRAME_ID: {
+        struct candef_fccu_thermal_t msg {};
+        if (candef_fccu_thermal_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        set_temperatureFuelCellLocation2(static_cast<float>(
+            candef_fccu_thermal_bme76_temp_decode(msg.bme76_temp)));
+        set_fuelCellEnergyAccumulated(static_cast<float>(
+            candef_fccu_thermal_bme76_humidity_decode(msg.bme76_humidity)));
         break;
     }
 
@@ -141,8 +197,25 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
         set_buttonsSteeringWheelMask(frame.data[0]);
         break;
 
+    case CANDEF_SWU_TIME_FRAME_ID: {
+        struct candef_swu_time_t msg {};
+        if (candef_swu_time_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        set_lapTime(static_cast<uint64_t>(msg.lap_time_ms));
+        break;
+    }
+
+    case CANDEF_SWU_STATE_FRAME_ID: {
+        struct candef_swu_state_t msg {};
+        if (candef_swu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        set_lapNumber(static_cast<uint8_t>(msg.lap_number));
+        break;
+    }
+
     case CANDEF_MCU_FAULTS_FRAME_ID:
-    case CANDEF_MCU_INPUTS_FRAME_ID:
     case CANDEF_MCU_ANALOG_UNASSIGNED_FRAME_ID:
         break;
 
@@ -155,8 +228,8 @@ static void log_can_summary(const CanRxStats& stats)
 {
     log("CAN", std::format(
         "1s: rx={} unknown={} | STATE={} FAULTS={} DRIVE={} PT={} FC={} ACC={} "
-        "PEDALS={} INPUTS={} PROTIUM={} | fc_v={:.1f} fc_i={:.2f} sc_v={:.1f} sc_i={:.2f} "
-        "mc_v={:.1f} mc_i={:.2f} ab_v={:.1f} state={}",
+        "PEDALS={} INPUTS={} FCCU={} SWU_TIME={} SWU_STATE={} | fc_v={:.1f} fc_i={:.2f} "
+        "sc_v={:.1f} sc_i={:.2f} mc_v={:.1f} mc_i={:.2f} ab_v={:.1f} state={} lap={} lap_ms={}",
         stats.total,
         stats.unknown,
         stats.mcu_state,
@@ -167,7 +240,9 @@ static void log_can_summary(const CanRxStats& stats)
         stats.mcu_accessory,
         stats.mcu_pedals,
         stats.mcu_inputs,
-        stats.protium,
+        stats.fccu,
+        stats.swu_time,
+        stats.swu_state,
         get_fuelCellOutputVoltage(),
         get_fuelCellOutputCurrent(),
         get_supercapacitorVoltage(),
@@ -175,7 +250,9 @@ static void log_can_summary(const CanRxStats& stats)
         get_motorControllerSupplyVoltage(),
         get_motorControllerSupplyCurrent(),
         get_accessoryBatteryVoltage(),
-        get_masterState()));
+        get_masterState(),
+        get_lapNumber(),
+        get_lapTime()));
 }
 
 } // namespace
