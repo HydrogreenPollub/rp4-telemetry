@@ -21,7 +21,6 @@
 //     stopSignal = signal;
 // }
 
-
 // int main(int argc, char* argv[])
 // {
 //     try{
@@ -30,7 +29,7 @@
 
 //         spdlog::logger logger(std::string(), {fileSink, consoleSink});
 //         spdlog::set_default_logger(std::make_shared<spdlog::logger>(logger));
-//         spdlog::flush_on(spdlog::level::trace);        
+//         spdlog::flush_on(spdlog::level::trace);
 
 //         for (int sig=1; sig<NSIG; ++sig)
 //             std::signal(sig, signalHandler);
@@ -40,10 +39,8 @@
 //             return EXIT_FAILURE;
 //         }
 
-        
 //         HmiParser parser;
 
-        
 //         parser.onMasterMeasurements = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const MasterMeasurements& measurements){
 //             spdlog::info("Master measurements @ {}ms ({} cycles)", msClockTickCount, cycleClockTickCount);
 
@@ -63,7 +60,7 @@
 //             spdlog::info("fuelCellOutputVoltage = {:.4f}", measurements.fuelCellOutputVoltage);
 //             spdlog::info("supercapacitorVoltage = {:.4f}", measurements.supercapacitorVoltage);
 //             spdlog::info("motorControllerSupplyVoltage = {:.4f}", measurements.motorControllerSupplyVoltage);
-            
+
 //             spdlog::info("DIN = {:2x}", measurements.din);
 
 //             spdlog::info("rpm = {:.4f}", measurements.rpm);
@@ -80,7 +77,6 @@
 //             spdlog::info("accelOutputVoltage = {:.4f}", status.accelOutputVoltage);
 //             spdlog::info("brakeOutputVoltage = {:.4f}", status.brakeOutputVoltage);
 //         };
-        
 
 //         parser.onProtiumValues = [](uint32_t msClockTickCount, uint32_t cycleClockTickCount, const ProtiumValues& values){
 //             spdlog::info("Protium values @ {}ms ({} cycles)", msClockTickCount, cycleClockTickCount);
@@ -101,7 +97,6 @@
 //                 spdlog::info(" history[{}] @ {:10}ms -> {}", i++, entry.msClockTickCount, magic_enum::enum_name(static_cast<ProtiumOperatingState>(entry.state)));
 //             }
 //         };
-
 
 //         asio::io_context io;
 //         asio::serial_port serial(io);
@@ -140,6 +135,5 @@
 //         spdlog::critical("Unknown exception!");
 //     }
 
-//     return EXIT_FAILURE;    
+//     return EXIT_FAILURE;
 // }
-

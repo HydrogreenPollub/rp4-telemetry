@@ -30,7 +30,7 @@ void* csv(void* arg)
            << "masterState,protiumState,mainValveEnableOutput,motorControllerEnableOutput"
            << std::endl;
 
-    constexpr uintmax_t MAX_FILE_SIZE  = 50ULL * 1024 * 1024; // 50 MB
+    constexpr uintmax_t MAX_FILE_SIZE = 50ULL * 1024 * 1024; // 50 MB
     constexpr uintmax_t MIN_FREE_SPACE = 20ULL * 1024 * 1024; // 20 MB
     int checkInterval = 0;
     uint64_t row_id = 0;

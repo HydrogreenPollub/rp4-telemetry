@@ -6,8 +6,8 @@
 #include <chrono>
 #include <fcntl.h>
 #include <filesystem>
-#include <fstream>
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <mutex>
 #include <sys/file.h>
@@ -73,10 +73,10 @@ std::string format_snapshot(const CanRxStats& can, bool gps_connected, unsigned 
         get_lapTime(),
         gps_connected
             ? std::format("connected @ {} baud | lat={:.6f} lon={:.6f} spd={:.1f}",
-                gps_baud,
-                get_gpsLatitude(),
-                get_gpsLongitude(),
-                get_gpsSpeed())
+                  gps_baud,
+                  get_gpsLatitude(),
+                  get_gpsLongitude(),
+                  get_gpsSpeed())
             : std::string("not connected"));
 }
 

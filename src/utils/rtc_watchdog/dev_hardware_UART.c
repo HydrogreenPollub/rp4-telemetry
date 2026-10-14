@@ -30,12 +30,12 @@
 ******************************************************************************/
 #include "dev_hardware_UART.h"
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <termios.h>
 #include <unistd.h>
-#include <string.h>
 
 HARDWARE_UART hardware_UART;
 struct termios UART_Set;
@@ -48,12 +48,12 @@ Info:
     /dev/ttyTHS*
     The default baud rate is 9600, 8-bit data, 1 stop bit, no parity
 ******************************************************************************/
-void DEV_HARDWARE_UART_begin(char *UART_device)
+void DEV_HARDWARE_UART_begin(char* UART_device)
 {
-    //device
-    if((hardware_UART.fd = open(UART_device, O_RDWR | O_NOCTTY)) < 0)  { //打开UART 
-        perror("Failed to open UART device.\n");  
-        exit(1); 
+    // device
+    if ((hardware_UART.fd = open(UART_device, O_RDWR | O_NOCTTY)) < 0) { // 打开UART
+        perror("Failed to open UART device.\n");
+        exit(1);
     } else {
         DEV_HARDWARE_UART_Debug("open : %s\r\n", UART_device);
     }
@@ -68,9 +68,9 @@ Info:
 ******************************************************************************/
 void DEV_HARDWARE_UART_end(void)
 {
-    if (close(hardware_UART.fd) != 0){
+    if (close(hardware_UART.fd) != 0) {
         DEV_HARDWARE_UART_Debug("Failed to close UART device\r\n");
-        perror("Failed to close UART device.\n");  
+        perror("Failed to close UART device.\n");
     }
 }
 
@@ -102,59 +102,95 @@ void DEV_HARDWARE_UART_setBaudrate(uint32_t Baudrate)
 {
     uint16_t err;
     uint32_t baud;
-    tcflush(hardware_UART.fd, TCIOFLUSH);//清空数据缓冲区
-    
-    switch(Baudrate)        //Set the number of data bits
-    {
-        case B230400:
-        case 230400:    baud = B230400; break;
-        case B115200:   
-        case 115200:    baud = B115200; break;
-        case B57600:   
-        case 57600:     baud = B57600; break;
-        case B38400:   
-        case 38400:     baud = B38400; break;
-        case B19200:   
-        case 19200:     baud = B19200; break;
-        case B9600:   
-        case 9600:  baud = B9600; break;
-        case B4800:   
-        case 4800:  baud = B4800; break;
-        case B2400:   
-        case 2400:  baud = B2400; break;
-        case B1800:   
-        case 1800:  baud = B1800; break;
-        case B1200:   
-        case 1200:  baud = B1200; break;
-        case B600:   
-        case 600:   baud = B600; break;
-        case B300:   
-        case 300:   baud = B300; break;
-        case B200:   
-        case 200:   baud = B200; break;
-        case B150:   
-        case 150:   baud = B150; break;
-        case B134:   
-        case 134:   baud = B134; break;
-        case B110:   
-        case 110:   baud = B110; break;
-        case B75:   
-        case 75:    baud = B75; break;
-        case B50:   
-        case 50:    baud = B50; break;
-        default:    baud = B9600;break;
+    tcflush(hardware_UART.fd, TCIOFLUSH); // 清空数据缓冲区
 
+    switch (Baudrate) // Set the number of data bits
+    {
+    case B230400:
+    case 230400:
+        baud = B230400;
+        break;
+    case B115200:
+    case 115200:
+        baud = B115200;
+        break;
+    case B57600:
+    case 57600:
+        baud = B57600;
+        break;
+    case B38400:
+    case 38400:
+        baud = B38400;
+        break;
+    case B19200:
+    case 19200:
+        baud = B19200;
+        break;
+    case B9600:
+    case 9600:
+        baud = B9600;
+        break;
+    case B4800:
+    case 4800:
+        baud = B4800;
+        break;
+    case B2400:
+    case 2400:
+        baud = B2400;
+        break;
+    case B1800:
+    case 1800:
+        baud = B1800;
+        break;
+    case B1200:
+    case 1200:
+        baud = B1200;
+        break;
+    case B600:
+    case 600:
+        baud = B600;
+        break;
+    case B300:
+    case 300:
+        baud = B300;
+        break;
+    case B200:
+    case 200:
+        baud = B200;
+        break;
+    case B150:
+    case 150:
+        baud = B150;
+        break;
+    case B134:
+    case 134:
+        baud = B134;
+        break;
+    case B110:
+    case 110:
+        baud = B110;
+        break;
+    case B75:
+    case 75:
+        baud = B75;
+        break;
+    case B50:
+    case 50:
+        baud = B50;
+        break;
+    default:
+        baud = B9600;
+        break;
     }
     DEV_HARDWARE_UART_Debug("Baud rate setting\r\n");
- 	if(cfsetispeed(&UART_Set, baud) != 0){
+    if (cfsetispeed(&UART_Set, baud) != 0) {
         DEV_HARDWARE_UART_Debug("Baud rate setting failed 1\r\n");
     }
-	if(cfsetospeed(&UART_Set, baud) != 0){
+    if (cfsetospeed(&UART_Set, baud) != 0) {
         DEV_HARDWARE_UART_Debug("Baud rate setting failed 2\r\n");
-        
     }
     err = tcsetattr(hardware_UART.fd, TCSANOW, &UART_Set);
-    if(err != 0){
+    if (err != 0) {
         perror("tcsetattr fd");
         DEV_HARDWARE_UART_Debug("Setting the terminal baud rate failed\r\n");
     }
@@ -168,10 +204,11 @@ Info:
 ******************************************************************************/
 uint8_t DEV_HARDWARE_UART_writeByte(uint8_t buf)
 {
-    uint8_t sbuf[1] = {0};
+    uint8_t sbuf[1] = { 0 };
     sbuf[0] = buf;
     ssize_t n = write(hardware_UART.fd, sbuf, 1);
-    if (n < 0) return n;
+    if (n < 0)
+        return n;
     return 0;
 }
 
@@ -182,10 +219,11 @@ parameter:
     len :   Number of bytes sent
 Info:
 ******************************************************************************/
-uint8_t DEV_HARDWARE_UART_write(const char * buf, uint32_t len)
+uint8_t DEV_HARDWARE_UART_write(const char* buf, uint32_t len)
 {
-    ssize_t n = write(hardware_UART.fd, buf, len); 
-    if (n < 0) return n;
+    ssize_t n = write(hardware_UART.fd, buf, len);
+    if (n < 0)
+        return n;
     return 0;
 }
 
@@ -196,9 +234,10 @@ Info: Return read data
 ******************************************************************************/
 uint8_t DEV_HARDWARE_UART_readByte(void)
 {
-    uint8_t buf[1] = {0};
+    uint8_t buf[1] = { 0 };
     ssize_t n = read(hardware_UART.fd, buf, 1);
-    if (n < 0) return n;
+    if (n < 0)
+        return n;
     return buf[0];
 }
 
@@ -212,7 +251,8 @@ Info:
 uint8_t DEV_HARDWARE_UART_read(char* buf, uint32_t len)
 {
     ssize_t n = read(hardware_UART.fd, buf, len);
-    if (n < 0) return n;
+    if (n < 0)
+        return n;
     return 0;
 }
 
@@ -226,15 +266,14 @@ Info:
 ******************************************************************************/
 int DEV_HARDWARE_UART_Set(int databits, int stopbits, int parity)
 {
-    if(tcgetattr(hardware_UART.fd, &UART_Set) != 0)
-    {
+    if (tcgetattr(hardware_UART.fd, &UART_Set) != 0) {
         perror("tcgetattr fd");
         DEV_HARDWARE_UART_Debug("Failed to get terminal parameters\r\n");
         return 0;
     }
-   UART_Set.c_cflag |= (CLOCAL | CREAD);        //Generally set flag
+    UART_Set.c_cflag |= (CLOCAL | CREAD); // Generally set flag
 
-    switch(databits)        //Set the number of data bits
+    switch (databits) // Set the number of data bits
     {
     case 5:
         UART_Set.c_cflag &= ~CSIZE;
@@ -257,70 +296,62 @@ int DEV_HARDWARE_UART_Set(int databits, int stopbits, int parity)
         return 0;
     }
 
-    switch(parity)            //Set check digit
+    switch (parity) // Set check digit
     {
     case 'n':
     case 'N':
-        UART_Set.c_cflag &= ~PARENB;        //Clear check digit
-        UART_Set.c_iflag &= ~INPCK;         //enable parity checking
+        UART_Set.c_cflag &= ~PARENB; // Clear check digit
+        UART_Set.c_iflag &= ~INPCK; // enable parity checking
         break;
     case 'o':
     case 'O':
-        UART_Set.c_cflag |= PARENB;         //enable parity
-        UART_Set.c_cflag |= PARODD;         //Odd parity
-        UART_Set.c_iflag |= INPCK;          //disable parity checking
+        UART_Set.c_cflag |= PARENB; // enable parity
+        UART_Set.c_cflag |= PARODD; // Odd parity
+        UART_Set.c_iflag |= INPCK; // disable parity checking
         break;
-    case 'e':     
-    case 'E':        
-        UART_Set.c_cflag |= PARENB;         //enable parity        
-        UART_Set.c_cflag &= ~PARODD;        //Even parity         
-        UART_Set.c_iflag |= INPCK;          //disable pairty checking        
-        break;     
-    case 's':    
-    case 'S':         
-        UART_Set.c_cflag &= ~PARENB;        //Clear check digit         
+    case 'e':
+    case 'E':
+        UART_Set.c_cflag |= PARENB; // enable parity
+        UART_Set.c_cflag &= ~PARODD; // Even parity
+        UART_Set.c_iflag |= INPCK; // disable pairty checking
+        break;
+    case 's':
+    case 'S':
+        UART_Set.c_cflag &= ~PARENB; // Clear check digit
         UART_Set.c_cflag &= ~CSTOPB;
-        UART_Set.c_iflag |= INPCK;          //disable pairty checking        
-        break;    
-    default:         
-        fprintf(stderr, "Unsupported parity.\n");        
-        return 0;        
+        UART_Set.c_iflag |= INPCK; // disable pairty checking
+        break;
+    default:
+        fprintf(stderr, "Unsupported parity.\n");
+        return 0;
     }
-    switch(stopbits)        //Set stop bit  1   2
-    {     
-        case 1:         
-            UART_Set.c_cflag &= ~CSTOPB;        
-            break;     
-        case 2:        
-            UART_Set.c_cflag |= CSTOPB;    
-            break;   
-        default:     
-            fprintf(stderr, "Unsupported stopbits.\n");         
-            return 0;     
-    }    
+    switch (stopbits) // Set stop bit  1   2
+    {
+    case 1:
+        UART_Set.c_cflag &= ~CSTOPB;
+        break;
+    case 2:
+        UART_Set.c_cflag |= CSTOPB;
+        break;
+    default:
+        fprintf(stderr, "Unsupported stopbits.\n");
+        return 0;
+    }
     UART_Set.c_cflag |= (CLOCAL | CREAD);
     UART_Set.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
     UART_Set.c_oflag &= ~OPOST;
     UART_Set.c_oflag &= ~(ONLCR | OCRNL);
-    UART_Set.c_iflag &= ~(ICRNL | INLCR);    
+    UART_Set.c_iflag &= ~(ICRNL | INLCR);
     UART_Set.c_iflag &= ~(IXON | IXOFF | IXANY);
     tcflush(hardware_UART.fd, TCIFLUSH);
-    UART_Set.c_cc[VTIME] = 150;        //Set timeout
-    UART_Set.c_cc[VMIN] = 1;        //
-    if(tcsetattr(hardware_UART.fd, TCSANOW, &UART_Set) != 0)   //Update the UART_Set and do it now  
+    UART_Set.c_cc[VTIME] = 150; // Set timeout
+    UART_Set.c_cc[VMIN] = 1; //
+    if (tcsetattr(hardware_UART.fd, TCSANOW, &UART_Set) != 0) // Update the UART_Set and do it now
     {
         perror("tcsetattr fd");
         DEV_HARDWARE_UART_Debug("Setting terminal parameters failed\r\n");
-        return 0;    
-    }   
+        return 0;
+    }
     DEV_HARDWARE_UART_Debug("Set terminal parameters successfully\r\n");
     return 1;
 }
-
-
-
-
-
-
-
-

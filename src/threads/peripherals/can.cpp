@@ -76,7 +76,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
 
     switch (can_id) {
     case CANDEF_MCU_STATE_FRAME_ID: {
-        struct candef_mcu_state_t msg {};
+        struct candef_mcu_state_t msg { };
         if (candef_mcu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -89,7 +89,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_MCU_INPUTS_FRAME_ID: {
-        struct candef_mcu_inputs_t msg {};
+        struct candef_mcu_inputs_t msg { };
         if (candef_mcu_inputs_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -100,7 +100,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_MCU_ANALOG_PEDALS_FRAME_ID: {
-        struct candef_mcu_analog_pedals_t msg {};
+        struct candef_mcu_analog_pedals_t msg { };
         candef_mcu_analog_pedals_unpack(&msg, frame.data, frame.can_dlc);
         set_accelPedalVoltage(static_cast<float>(candef_mcu_analog_pedals_acceleration_pedal_voltage_decode(msg.acceleration_pedal_voltage)));
         set_brakePedalVoltage(static_cast<float>(candef_mcu_analog_pedals_brake_pedal_voltage_decode(msg.brake_pedal_voltage)));
@@ -108,7 +108,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_MCU_ANALOG_FUEL_CELL_FRAME_ID: {
-        struct candef_mcu_analog_fuel_cell_t msg {};
+        struct candef_mcu_analog_fuel_cell_t msg { };
         candef_mcu_analog_fuel_cell_unpack(&msg, frame.data, frame.can_dlc);
         set_fuelCellOutputCurrent(static_cast<float>(candef_mcu_analog_fuel_cell_fuel_cell_output_current_decode(msg.fuel_cell_output_current)));
         set_fuelCellOutputVoltage(static_cast<float>(candef_mcu_analog_fuel_cell_fuel_cell_output_voltage_decode(msg.fuel_cell_output_voltage)));
@@ -117,7 +117,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_MCU_ANALOG_POWERTRAIN_FRAME_ID: {
-        struct candef_mcu_analog_powertrain_t msg {};
+        struct candef_mcu_analog_powertrain_t msg { };
         candef_mcu_analog_powertrain_unpack(&msg, frame.data, frame.can_dlc);
         set_supercapacitorVoltage(static_cast<float>(candef_mcu_analog_powertrain_supercapacitor_voltage_decode(msg.supercapacitor_voltage)));
         set_supercapacitorCurrent(static_cast<float>(candef_mcu_analog_powertrain_supercapacitor_current_decode(msg.supercapacitor_current)));
@@ -127,7 +127,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_MCU_ANALOG_ACCESSORY_FRAME_ID: {
-        struct candef_mcu_analog_accessory_t msg {};
+        struct candef_mcu_analog_accessory_t msg { };
         candef_mcu_analog_accessory_unpack(&msg, frame.data, frame.can_dlc);
         set_accessoryBatteryVoltage(static_cast<float>(candef_mcu_analog_accessory_accessory_battery_voltage_decode(msg.accessory_battery_voltage)));
         set_accessoryBatteryCurrent(static_cast<float>(candef_mcu_analog_accessory_accessory_battery_current_decode(msg.accessory_battery_current)));
@@ -135,7 +135,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_MCU_ANALOG_DRIVE_FRAME_ID: {
-        struct candef_mcu_analog_drive_t msg {};
+        struct candef_mcu_analog_drive_t msg { };
         candef_mcu_analog_drive_unpack(&msg, frame.data, frame.can_dlc);
         set_sensorRpm(static_cast<float>(candef_mcu_analog_drive_rpm_decode(msg.rpm)));
         set_sensorSpeed(static_cast<float>(candef_mcu_analog_drive_speed_decode(msg.speed)));
@@ -143,7 +143,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_MCU_ANALOG_OUTPUTS_FRAME_ID: {
-        struct candef_mcu_analog_outputs_t msg {};
+        struct candef_mcu_analog_outputs_t msg { };
         if (candef_mcu_analog_outputs_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -155,7 +155,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_FCCU_STATE_FRAME_ID: {
-        struct candef_fccu_state_t msg {};
+        struct candef_fccu_state_t msg { };
         if (candef_fccu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -166,7 +166,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_FCCU_HYDROGEN_FRAME_ID: {
-        struct candef_fccu_hydrogen_t msg {};
+        struct candef_fccu_hydrogen_t msg { };
         if (candef_fccu_hydrogen_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -180,7 +180,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_FCCU_ENVIRONMENT_FRAME_ID: {
-        struct candef_fccu_environment_t msg {};
+        struct candef_fccu_environment_t msg { };
         if (candef_fccu_environment_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -198,7 +198,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
         break;
 
     case CANDEF_SWU_TIME_FRAME_ID: {
-        struct candef_swu_time_t msg {};
+        struct candef_swu_time_t msg { };
         if (candef_swu_time_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -207,7 +207,7 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
     }
 
     case CANDEF_SWU_STATE_FRAME_ID: {
-        struct candef_swu_state_t msg {};
+        struct candef_swu_state_t msg { };
         if (candef_swu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
             break;
         }
@@ -226,33 +226,10 @@ static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
 
 static void log_can_summary(const CanRxStats& stats)
 {
-    log("CAN", std::format(
-        "1s: rx={} unknown={} | STATE={} FAULTS={} DRIVE={} PT={} FC={} ACC={} "
-        "PEDALS={} INPUTS={} FCCU={} SWU_TIME={} SWU_STATE={} | fc_v={:.1f} fc_i={:.2f} "
-        "sc_v={:.1f} sc_i={:.2f} mc_v={:.1f} mc_i={:.2f} ab_v={:.1f} state={} lap={} lap_ms={}",
-        stats.total,
-        stats.unknown,
-        stats.mcu_state,
-        stats.mcu_faults,
-        stats.mcu_drive,
-        stats.mcu_powertrain,
-        stats.mcu_fuel_cell,
-        stats.mcu_accessory,
-        stats.mcu_pedals,
-        stats.mcu_inputs,
-        stats.fccu,
-        stats.swu_time,
-        stats.swu_state,
-        get_fuelCellOutputVoltage(),
-        get_fuelCellOutputCurrent(),
-        get_supercapacitorVoltage(),
-        get_supercapacitorCurrent(),
-        get_motorControllerSupplyVoltage(),
-        get_motorControllerSupplyCurrent(),
-        get_accessoryBatteryVoltage(),
-        get_masterState(),
-        get_lapNumber(),
-        get_lapTime()));
+    log("CAN", std::format("1s: rx={} unknown={} | STATE={} FAULTS={} DRIVE={} PT={} FC={} ACC={} "
+                           "PEDALS={} INPUTS={} FCCU={} SWU_TIME={} SWU_STATE={} | fc_v={:.1f} fc_i={:.2f} "
+                           "sc_v={:.1f} sc_i={:.2f} mc_v={:.1f} mc_i={:.2f} ab_v={:.1f} state={} lap={} lap_ms={}",
+                   stats.total, stats.unknown, stats.mcu_state, stats.mcu_faults, stats.mcu_drive, stats.mcu_powertrain, stats.mcu_fuel_cell, stats.mcu_accessory, stats.mcu_pedals, stats.mcu_inputs, stats.fccu, stats.swu_time, stats.swu_state, get_fuelCellOutputVoltage(), get_fuelCellOutputCurrent(), get_supercapacitorVoltage(), get_supercapacitorCurrent(), get_motorControllerSupplyVoltage(), get_motorControllerSupplyCurrent(), get_accessoryBatteryVoltage(), get_masterState(), get_lapNumber(), get_lapTime()));
 }
 
 } // namespace

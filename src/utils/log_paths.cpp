@@ -1,8 +1,8 @@
 #include <utils/log_paths.hpp>
 
 #include <algorithm>
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <ctime>
 #include <filesystem>
 #include <string>
@@ -13,7 +13,7 @@ std::string timestamp_tag()
 {
     const auto now = std::chrono::system_clock::now();
     const std::time_t t = std::chrono::system_clock::to_time_t(now);
-    struct tm tm_buf {};
+    struct tm tm_buf { };
     localtime_r(&t, &tm_buf);
 
     char buf[32];

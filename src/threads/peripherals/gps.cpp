@@ -21,7 +21,7 @@ constexpr auto GPS_RECONNECT_INTERVAL = std::chrono::seconds(5);
 constexpr auto GPS_BAUD_PROBE_TIMEOUT = std::chrono::seconds(3);
 constexpr auto GPS_READ_TIMEOUT = std::chrono::seconds(2);
 constexpr auto GPS_STATUS_LOG_INTERVAL = std::chrono::seconds(30);
-constexpr std::array<unsigned int, 2> GPS_BAUD_CANDIDATES = {9600, 115200};
+constexpr std::array<unsigned int, 2> GPS_BAUD_CANDIDATES = { 9600, 115200 };
 
 void configure_serial_port(asio::serial_port& serial, unsigned int baud)
 {
@@ -170,13 +170,7 @@ void process_nmea_line(const std::string& line)
 
 void log_gps_status(unsigned int baud)
 {
-    log("GPS", std::format(
-        "status @ {} baud | lat={:.6f} lon={:.6f} alt={:.1f} spd={:.1f}",
-        baud,
-        get_gpsLatitude(),
-        get_gpsLongitude(),
-        get_gpsAltitude(),
-        get_gpsSpeed()));
+    log("GPS", std::format("status @ {} baud | lat={:.6f} lon={:.6f} alt={:.1f} spd={:.1f}", baud, get_gpsLatitude(), get_gpsLongitude(), get_gpsAltitude(), get_gpsSpeed()));
 }
 
 } // namespace

@@ -36,31 +36,30 @@ extern "C" {
 
 #include <stdint.h>
 
-
 #define DEV_HARDWARE_UART_DEBUG 0
 #if DEV_HARDWARE_UART_DEBUG
-#define DEV_HARDWARE_UART_Debug(__info,...) printf("Debug: " __info,##__VA_ARGS__)
+#define DEV_HARDWARE_UART_Debug(__info, ...) printf("Debug: " __info, ##__VA_ARGS__)
 #else
-#define DEV_HARDWARE_UART_Debug(__info,...)
+#define DEV_HARDWARE_UART_Debug(__info, ...)
 #endif
 
 /**
  * Define UART attribute
-**/
+ **/
 typedef struct UARTStruct {
-    //GPIO
+    // GPIO
     uint16_t TXD_PIN;
     uint16_t RXD_PIN;
-    
+
     int fd; //
     uint16_t addr; //
 } HARDWARE_UART;
 
-void DEV_HARDWARE_UART_begin(char *UART_device);
+void DEV_HARDWARE_UART_begin(char* UART_device);
 void DEV_HARDWARE_UART_end(void);
 void DEV_HARDWARE_UART_setBaudrate(uint32_t Baudrate);
 
-uint8_t DEV_HARDWARE_UART_write(const char * buf, uint32_t len);
+uint8_t DEV_HARDWARE_UART_write(const char* buf, uint32_t len);
 uint8_t DEV_HARDWARE_UART_read(char* buf, uint32_t len);
 uint8_t DEV_HARDWARE_UART_writeByte(uint8_t buf);
 uint8_t DEV_HARDWARE_UART_readByte(void);
