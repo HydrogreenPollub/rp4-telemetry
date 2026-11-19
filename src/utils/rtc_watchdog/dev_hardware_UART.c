@@ -107,75 +107,111 @@ void DEV_HARDWARE_UART_setBaudrate(uint32_t Baudrate)
     switch (Baudrate) // Set the number of data bits
     {
     case B230400:
+#if B230400 != 230400
     case 230400:
+#endif
         baud = B230400;
         break;
     case B115200:
+#if B115200 != 115200
     case 115200:
+#endif
         baud = B115200;
         break;
     case B57600:
+#if B57600 != 57600
     case 57600:
+#endif
         baud = B57600;
         break;
     case B38400:
+#if B38400 != 38400
     case 38400:
+#endif
         baud = B38400;
         break;
     case B19200:
+#if B19200 != 19200
     case 19200:
+#endif
         baud = B19200;
         break;
     case B9600:
+#if B9600 != 9600
     case 9600:
+#endif
         baud = B9600;
         break;
     case B4800:
+#if B4800 != 4800
     case 4800:
+#endif
         baud = B4800;
         break;
     case B2400:
+#if B2400 != 2400
     case 2400:
+#endif
         baud = B2400;
         break;
     case B1800:
+#if B1800 != 1800
     case 1800:
+#endif
         baud = B1800;
         break;
     case B1200:
+#if B1200 != 1200
     case 1200:
+#endif
         baud = B1200;
         break;
     case B600:
+#if B600 != 600
     case 600:
+#endif
         baud = B600;
         break;
     case B300:
+#if B300 != 300
     case 300:
+#endif
         baud = B300;
         break;
     case B200:
+#if B200 != 200
     case 200:
+#endif
         baud = B200;
         break;
     case B150:
+#if B150 != 150
     case 150:
+#endif
         baud = B150;
         break;
     case B134:
+#if B134 != 134
     case 134:
+#endif
         baud = B134;
         break;
     case B110:
+#if B110 != 110
     case 110:
+#endif
         baud = B110;
         break;
     case B75:
+#if B75 != 75
     case 75:
+#endif
         baud = B75;
         break;
     case B50:
+#if B50 != 50
     case 50:
+#endif
         baud = B50;
         break;
     default:
