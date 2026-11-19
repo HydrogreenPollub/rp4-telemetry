@@ -26,10 +26,13 @@ def run(source):
         target.parent.mkdir(parents=True)
         target.write_text((source / "src/threads/peripherals/csv.cpp").read_text())
 
+        (target.parent / "csv_can_data.hpp").write_text(
+            (source / "src/threads/peripherals/csv_can_data.hpp").read_text())
+
         # Use the CSV implementation; only replace its 10 ms wait to
         # exercise the full 10 MB threshold quickly and stop deterministically.
         implementation = target.read_text()
-        wait = "std::this_thread::sleep_for(std::chrono::milliseconds(10));"
+        wait = "std::this_thread::sleep_until(next_row);"
         assert implementation.count(wait) == 1
         target.write_text(implementation.replace(wait, "test_tick();"))
         declarations = re.findall(r"^(\w+) (get_\w+)\(void\);$",
@@ -84,7 +87,7 @@ std::string next_data_csv_path() {
 '''
         driver += "".join(
             f"{kind} {name}(void) {{ "
-            + ("return ++samples;" if name == "get_timeBeforeTransmit" else "return 0;")
+            + ("return ++samples;" if name == "get_fuelCellOutputVoltage" else "return 0;")
             + " }\n" for kind, name in declarations)
         driver += r'''int main(int argc, char** argv) {
     mode = argc > 1 ? argv[1] : "rotation";
@@ -134,12 +137,12 @@ std::string next_data_csv_path() {
                     for row in reader:
                         assert len(row) == len(header)
                         rows.append(row)
-            assert [int(row[0]) for row in rows] == list(range(1, len(rows) + 1))
-            assert [int(row[2]) for row in rows] == list(range(1, len(rows) + 1))
+            assert [int(float(row[1])) for row in rows] == list(range(1, len(rows) + 1))
+            assert header == "time,V_STACK,V_BUS,V_ACC,I_STACK,I_FC,I_SC,I_MC,I_ACC,Q_N,T_FC,T_AMBIENT,RH_AMBIENT,p_AMBIENT,p_LP,p_HP,n_FAN_FC,c_H2_LEAKAGE,v_SENSOR,v_GPS,v_LATITUDE,v_LONGITUDE,buttons_mask,emergencies".split(",")
             return files, rows, result.stdout
 
         files, rows, output = scenario("rotation", "normal")
-        assert len(files) >= 3 and len(rows) == 50000
+        assert len(files) >= 2 and len(rows) == 50000
         assert output.count("Rotated CSV file") == len(files) - 1
         print(f"PASS: {len(files)} files, 50000 continuous rows, headers and 10 MB limit")
         files, rows, output = scenario("open-error")

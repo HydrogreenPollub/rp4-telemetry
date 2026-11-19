@@ -1,3 +1,5 @@
+#include "csv_can_data.hpp"
+#include "csv_can.h"
 #include <threads/peripherals/can.hpp>
 #include <utils/data.hpp>
 #include <utils/log.hpp>
@@ -69,9 +71,72 @@ static uint16_t map_mcu_status_to_master_state(uint8_t can_status)
     }
 }
 
+static void update_csv_can_data(uint32_t id, const struct can_frame& frame)
+{
+    switch (id) {
+    case CSV_CAN_MCU_FUEL_CELL_CURRENTS_FRAME_ID: {
+        struct csv_can_mcu_fuel_cell_currents_t msg {};
+        if (csv_can_mcu_fuel_cell_currents_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        const std::lock_guard lock(csv_can_mutex);
+        csv_can_data.stack_current = csv_can_mcu_fuel_cell_currents_fuel_cell_stack_output_current_decode(msg.fuel_cell_stack_output_current);
+        csv_can_data.fc_current = csv_can_mcu_fuel_cell_currents_fuel_cell_output_current_decode(msg.fuel_cell_output_current);
+        break;
+    }
+    case CANDEF_FCCU_STATE_FRAME_ID: {
+        struct candef_fccu_state_t msg {};
+        if (candef_fccu_state_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        const std::lock_guard lock(csv_can_mutex);
+        csv_can_data.fan_duty = candef_fccu_state_fan_duty_decode(msg.fan_duty);
+        break;
+    }
+    case CANDEF_FCCU_HYDROGEN_FRAME_ID: {
+        struct candef_fccu_hydrogen_t msg {};
+        if (candef_fccu_hydrogen_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        const std::lock_guard lock(csv_can_mutex);
+        csv_can_data.flow = candef_fccu_hydrogen_h2_flow_decode(msg.h2_flow);
+        csv_can_data.lp = candef_fccu_hydrogen_h2_lp_pressure_decode(msg.h2_lp_pressure);
+        csv_can_data.hp = candef_fccu_hydrogen_h2_hp_pressure_decode(msg.h2_hp_pressure);
+        break;
+    }
+    case CANDEF_FCCU_ENVIRONMENT_FRAME_ID: {
+        struct candef_fccu_environment_t msg {};
+        if (candef_fccu_environment_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        const std::lock_guard lock(csv_can_mutex);
+        csv_can_data.fc_temp = candef_fccu_environment_fc_temp_c_decode(msg.fc_temp_c);
+        csv_can_data.ambient_temp = candef_fccu_environment_ambient_temp_c_decode(msg.ambient_temp_c);
+        csv_can_data.humidity = candef_fccu_environment_ambient_humidity_decode(msg.ambient_humidity);
+        csv_can_data.ambient_pressure = candef_fccu_environment_ambient_pressure_decode(msg.ambient_pressure);
+        break;
+    }
+    case CSV_CAN_MCU_FAULTS_FRAME_ID: {
+        struct csv_can_mcu_faults_t msg {};
+        if (csv_can_mcu_faults_unpack(&msg, frame.data, frame.can_dlc) < 0) {
+            break;
+        }
+        const std::lock_guard lock(csv_can_mutex);
+        csv_can_data.emergencies = msg.emergency_switch
+            | (msg.emergency_dead_mans_switch << 1)
+            | (msg.emergency_leakage_detected << 2)
+            | (msg.emergency_hydrogen_leakage_voltage << 3);
+        break;
+    }
+    }
+}
+
 static void handle_can_frame(const struct can_frame& frame, CanRxStats& stats)
 {
     const uint32_t can_id = frame.can_id & CAN_EFF_MASK;
+    if ((frame.can_id & (CAN_EFF_FLAG | CAN_RTR_FLAG | CAN_ERR_FLAG)) == CAN_EFF_FLAG) {
+        update_csv_can_data(can_id, frame);
+    }
     stats.record(can_id);
 
     switch (can_id) {

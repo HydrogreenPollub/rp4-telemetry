@@ -1,3 +1,4 @@
+#include "csv_can_data.hpp"
 #include <threads/peripherals/csv.hpp>
 #include <utils/log.hpp>
 #include <utils/log_paths.hpp>
@@ -12,16 +13,7 @@ namespace {
 constexpr uintmax_t MAX_FILE_SIZE = 10'000'000; // 10 MB, including header
 constexpr uintmax_t MIN_FREE_SPACE = 20ULL * 1024 * 1024; // 20 MiB
 
-const std::string header = "id,time,timeBeforeTransmit,accessoryBatteryVoltage,accessoryBatteryCurrent,"
-                           "fuelCellOutputVoltage,fuelCellOutputCurrent,supercapacitorVoltage,supercapacitorCurrent,"
-                           "motorControllerSupplyVoltage,motorControllerSupplyCurrent,fuelCellEnergyAccumulated,"
-                           "h2PressureLow,h2PressureFuelCell,h2PressureHigh,h2LeakageSensorVoltage,"
-                           "fanDutyCycle,blowerDutyCycle,temperatureFuelCellLocation1,temperatureFuelCellLocation2,"
-                           "accelPedalVoltage,brakePedalVoltage,accelOutputVoltage,brakeOutputVoltage,"
-                           "buttonsMasterMask,buttonsSteeringWheelMask,sensorRpm,sensorSpeed,lapNumber,lapTime,"
-                           "gpsAltitude,gpsLatitude,gpsLongitude,gpsSpeed,"
-                           "masterState,protiumState,mainValveEnableOutput,motorControllerEnableOutput"
-                           "\n";
+const std::string header = "time,V_STACK,V_BUS,V_ACC,I_STACK,I_FC,I_SC,I_MC,I_ACC,Q_N,T_FC,T_AMBIENT,RH_AMBIENT,p_AMBIENT,p_LP,p_HP,n_FAN_FC,c_H2_LEAKAGE,v_SENSOR,v_GPS,v_LATITUDE,v_LONGITUDE,buttons_mask,emergencies\n";
 
 bool has_free_space()
 {
@@ -82,13 +74,13 @@ void* csv(void* arg)
     std::string filename;
     std::ofstream output;
     uintmax_t file_size = 0;
-
     if (!open_file(output, filename, file_size)) {
         return nullptr;
     }
 
     int checkInterval = 0;
-    uint64_t row_id = 0;
+    constexpr auto period = std::chrono::milliseconds(10);
+    auto next_row = std::chrono::steady_clock::now();
 
     while (running.load(std::memory_order_relaxed)) {
         if (++checkInterval >= 100) { // check every ~1 s (100 x 10 ms)
@@ -98,50 +90,40 @@ void* csv(void* arg)
             }
         }
 
-        auto now = std::chrono::system_clock::now();
+        const auto now = std::chrono::system_clock::now();
         const double timestamp = std::chrono::duration<double>(now.time_since_epoch()).count();
 
+        const auto can = [] {
+            const std::lock_guard lock(csv_can_mutex);
+            return csv_can_data;
+        }();
+
         std::ostringstream row;
-        row << ++row_id << ",";
-        row << std::fixed << std::setprecision(3) << timestamp << ",";
-        row << std::setprecision(10);
-        row << get_timeBeforeTransmit() << ","
-            << get_accessoryBatteryVoltage() << ","
-            << get_accessoryBatteryCurrent() << ","
-            << get_fuelCellOutputVoltage() << ","
-            << get_fuelCellOutputCurrent() << ","
-            << get_supercapacitorVoltage() << ","
-            << get_supercapacitorCurrent() << ","
-            << get_motorControllerSupplyVoltage() << ","
-            << get_motorControllerSupplyCurrent() << ","
-            << get_fuelCellEnergyAccumulated() << ","
-            << get_h2PressureLow() << ","
-            << get_h2PressureFuelCell() << ","
-            << get_h2PressureHigh() << ","
-            << get_h2LeakageSensorVoltage() << ","
-            << get_fanDutyCycle() << ","
-            << get_blowerDutyCycle() << ","
-            << get_temperatureFuelCellLocation1() << ","
-            << get_temperatureFuelCellLocation2() << ","
-            << get_accelPedalVoltage() << ","
-            << get_brakePedalVoltage() << ","
-            << get_accelOutputVoltage() << ","
-            << get_brakeOutputVoltage() << ","
-            << static_cast<int>(get_buttonsMasterMask()) << ","
-            << static_cast<int>(get_buttonsSteeringWheelMask()) << ","
-            << get_sensorRpm() << ","
-            << get_sensorSpeed() << ","
-            << static_cast<int>(get_lapNumber()) << ","
-            << get_lapTime() << ","
-            << get_gpsAltitude() << ","
-            << get_gpsLatitude() << ","
-            << get_gpsLongitude() << ","
-            << get_gpsSpeed() << ","
-            << static_cast<int>(get_masterState()) << ","
-            << static_cast<int>(get_protiumState()) << ","
-            << (get_mainValveEnableOutput() ? "true" : "false") << ","
-            << (get_motorControllerEnableOutput() ? "true" : "false")
-            << '\n';
+        row << std::fixed << std::setprecision(3) << timestamp << ','
+               << std::setprecision(10)
+               << get_fuelCellOutputVoltage() << ','
+               << get_supercapacitorVoltage() << ','
+               << get_accessoryBatteryVoltage() << ','
+               << can.stack_current << ','
+               << can.fc_current << ','
+               << get_supercapacitorCurrent() << ','
+               << get_motorControllerSupplyCurrent() << ','
+               << get_accessoryBatteryCurrent() << ','
+               << can.flow << ','
+               << can.fc_temp << ','
+               << can.ambient_temp << ','
+               << can.humidity << ','
+               << can.ambient_pressure << ','
+               << can.lp << ','
+               << can.hp << ','
+               << can.fan_duty << ','
+               << get_h2LeakageSensorVoltage() << ','
+               << get_sensorSpeed() << ','
+               << get_gpsSpeed() << ','
+               << get_gpsLatitude() << ','
+               << get_gpsLongitude() << ','
+               << static_cast<unsigned>(get_buttonsMasterMask()) << ','
+               << can.emergencies << '\n';
 
         const std::string line = row.str();
         if (header.size() + line.size() > MAX_FILE_SIZE) {
@@ -166,7 +148,14 @@ void* csv(void* arg)
         }
         file_size += line.size();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // Skip missed deadlines to keep one row per sample interval.
+        next_row += period;
+        const auto completed = std::chrono::steady_clock::now();
+        if (next_row < completed) {
+            const auto missed = 1 + (completed - next_row) / period;
+            next_row += period * missed;
+        }
+        std::this_thread::sleep_until(next_row);
     }
 
     if (output.is_open()) {
