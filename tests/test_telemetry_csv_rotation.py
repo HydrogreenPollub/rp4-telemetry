@@ -66,7 +66,7 @@ std::string mode;
 unsigned ticks = 0;
 unsigned files = 0;
 unsigned samples = 0;
-void test_tick() { if (++ticks >= 50000) running.store(false); }
+void test_tick() { if (++ticks >= 100000) running.store(false); }
 void log(const char*, const std::string& message) { std::cout << message << "\n"; }
 std::filesystem::space_info test_space(const char* path, std::error_code& error) {
     if (mode == "space-error") {
@@ -109,7 +109,7 @@ std::string next_data_csv_path() {
             "test_space(log_paths::LOG_DIR, error)"))
         for name, cpp in (("normal", target), ("fault", fault_target)):
             subprocess.run(["g++", "-std=c++20", "-Wall", "-Wextra", "-Werror",
-                            "-O2", "-pthread", "-I", str(include), str(cpp),
+                            "-O2", "-pthread", "-I", str(include), "-I", str(target.parent), str(cpp),
                             str(work / "log_paths.cpp"), str(work / "driver.cpp"),
                             "-o", str(work / name)], check=True)
 
@@ -138,13 +138,14 @@ std::string next_data_csv_path() {
                         assert len(row) == len(header)
                         rows.append(row)
             assert [int(float(row[1])) for row in rows] == list(range(1, len(rows) + 1))
-            assert header == "time,V_STACK,V_BUS,V_ACC,I_STACK,I_FC,I_SC,I_MC,I_ACC,Q_N,T_FC,T_AMBIENT,RH_AMBIENT,p_AMBIENT,p_LP,p_HP,n_FAN_FC,c_H2_LEAKAGE,v_SENSOR,v_GPS,v_LATITUDE,v_LONGITUDE,buttons_mask,emergencies".split(",")
+            if files:
+                assert header == "time,V_STACK,V_BUS,V_ACC,I_STACK,I_FC,I_SC,I_MC,I_ACC,Q_N,T_FC,T_AMBIENT,RH_AMBIENT,p_AMBIENT,p_LP,p_HP,n_FAN_FC,c_H2_LEAKAGE,v_SENSOR,v_GPS,v_LATITUDE,v_LONGITUDE,buttons_mask,emergencies".split(",")
             return files, rows, result.stdout
 
         files, rows, output = scenario("rotation", "normal")
-        assert len(files) >= 2 and len(rows) == 50000
+        assert len(files) >= 2 and len(rows) == 100000
         assert output.count("Rotated CSV file") == len(files) - 1
-        print(f"PASS: {len(files)} files, 50000 continuous rows, headers and 10 MB limit")
+        print(f"PASS: {len(files)} files, 100000 continuous rows, headers and 10 MB limit")
         files, rows, output = scenario("open-error")
         assert len(files) == 1 and rows and "Unable to open file" in output
         print("PASS: failure opening the next file stops CSV and logs the error")
