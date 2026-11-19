@@ -3,6 +3,10 @@
 #include <utils/log.hpp>
 #include <utils/log_paths.hpp>
 
+#include <algorithm>
+#include <cmath>
+#include <format>
+#include <pthread.h>
 #include <sstream>
 #include <system_error>
 
@@ -78,11 +82,31 @@ void* csv(void* arg)
         return nullptr;
     }
 
+    const sched_param priority{.sched_priority = 1};
+    const int sched_error = pthread_setschedparam(pthread_self(), SCHED_FIFO, &priority);
+    if (sched_error == 0) {
+        log("CSV", "SCHED_FIFO priority 1 enabled");
+    } else {
+        log("CSV", "Could not set SCHED_FIFO: " + std::generic_category().message(sched_error));
+    }
+
     int checkInterval = 0;
     constexpr auto period = std::chrono::milliseconds(10);
     auto next_row = std::chrono::steady_clock::now();
 
+    auto previous_row = next_row;
+    bool have_previous_row = false;
+    unsigned intervals = 0;
+    double total_interval_us = 0;
+    double max_jitter_us = 0;
+    double max_wakeup_us = 0;
+    uint64_t missed_intervals = 0;
+
     while (running.load(std::memory_order_relaxed)) {
+        const auto woke = std::chrono::steady_clock::now();
+        if (have_previous_row) {
+            max_wakeup_us = std::max(max_wakeup_us, std::chrono::duration<double, std::micro>(woke - next_row).count());
+        }
         if (++checkInterval >= 100) { // check every ~1 s (100 x 10 ms)
             checkInterval = 0;
             if (!has_free_space()) {
@@ -90,7 +114,17 @@ void* csv(void* arg)
             }
         }
 
+        const auto row_start = std::chrono::steady_clock::now();
         const auto now = std::chrono::system_clock::now();
+        if (have_previous_row) {
+            const double interval_us = std::chrono::duration<double, std::micro>(row_start - previous_row).count();
+            total_interval_us += interval_us;
+            max_jitter_us = std::max(max_jitter_us,
+                std::abs(interval_us - std::chrono::duration<double, std::micro>(period).count()));
+            ++intervals;
+        }
+        previous_row = row_start;
+        have_previous_row = true;
         const double timestamp = std::chrono::duration<double>(now.time_since_epoch()).count();
 
         const auto can = [] {
@@ -148,11 +182,23 @@ void* csv(void* arg)
         }
         file_size += line.size();
 
+        if (intervals == 100) {
+            log("CSV", std::format(
+                "mean interval={:.1f} us | max jitter={:.1f} us | max wakeup delay={:.1f} us | missed={}",
+                total_interval_us / intervals, max_jitter_us, max_wakeup_us, missed_intervals));
+            intervals = 0;
+            total_interval_us = 0;
+            max_jitter_us = 0;
+            max_wakeup_us = 0;
+            missed_intervals = 0;
+        }
+
         // Skip missed deadlines to keep one row per sample interval.
         next_row += period;
         const auto completed = std::chrono::steady_clock::now();
         if (next_row < completed) {
             const auto missed = 1 + (completed - next_row) / period;
+            missed_intervals += missed;
             next_row += period * missed;
         }
         std::this_thread::sleep_until(next_row);
